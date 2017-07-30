@@ -1,0 +1,15 @@
+server:
+  ip: 127.0.0.1
+  port: 8080
+
+coin:
+  name: Viacoin
+  symbol: VIA
+  algo: scrypt
+  blocktime: 24
+
+rpc:
+  ip: 127.0.0.1
+  username: viarpc
+  password: viapass
+  port: 8332

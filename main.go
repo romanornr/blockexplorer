@@ -1,32 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
-	"github.com/btcsuite/btcrpcclient"
+	"github.com/spf13/viper"
 )
 
 func main() {
-	// Connect to local RPC server using HTTP POST mode.
-	connCfg := &btcrpcclient.ConnConfig{
-		Host:         "localhost:8332",
-		User:         "viarpc",
-		Pass:         "viapass",
-		HTTPPostMode: true, // Bitcoin Core & Bitcoin based altcoins only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core $ Bitcoin based altcoins do not provide TLS by default
-	}
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := btcrpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Shutdown()
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("config")
+	viper.SetConfigName("app")
 
-	// Get the current block count.
-	blockCount, err := client.GetBlockCount()
+	err := viper.ReadInConfig()
+
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("No configuration file loaded ! Please check the config folder")
 	}
-	log.Printf("Block count: %d", blockCount)
+
+	fmt.Printf("Reading configuration from %s\n", viper.ConfigFileUsed())
+	fmt.Printf("using %s:%d\n", viper.Get("server.ip"), viper.Get("server.port"))
 }

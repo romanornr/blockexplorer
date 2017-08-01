@@ -32,13 +32,14 @@ func main() {
 
 	mux := httprouter.New()
 	mux.GET("/", index)
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(":8000", mux)
 
 	//fmt.Printf("using %s:%d\n", viper.Get("server.ip"), viper.Get("server.port"))
 }
 
 func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	err := tpl.ExecuteTemplate(w, "index.html", nil)
+	coin := viper.Get("coin.name")
+	err := tpl.ExecuteTemplate(w, "index.html", coin)
 	if err != nil {
 		log.Println("errror")
 	}

@@ -1,0 +1,6 @@
+package: ""
+import:
+- package: github.com/julienschmidt/httprouter
+- package: github.com/btcsuite/btcutil
+  version: dcd4997b0664bcfd6ef48e4ae9da8396e08b1cd9
+- package: github.com/btcsuite/btcrpcclient

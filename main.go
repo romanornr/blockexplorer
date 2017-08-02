@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/btcsuite/btcrpcclient"
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
 )
@@ -29,12 +30,33 @@ func init() {
 }
 
 func main() {
+	fmt.Println(viper.GetString("server.ip") + ":" + viper.GetString("server.port"))
+	connCfg := &btcrpcclient.ConnConfig{
+		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
+		User:         viper.GetString("rpc.username"),
+		Pass:         viper.GetString("rpc.password"),
+		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
+		DisableTLS:   true, // Bitcoin core does not provide TLS by default
+	}
+
+	// Notice the notification parameter is nil since notifications are
+	// not supported in HTTP POST mode.
+	client, err := btcrpcclient.New(connCfg, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Shutdown()
+
+	// Get the current block count.
+	blockCount, err := client.GetBlockCount()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Block count: %d", blockCount)
 
 	mux := httprouter.New()
 	mux.GET("/", index)
-	http.ListenAndServe(":8000", mux)
-
-	//fmt.Printf("using %s:%d\n", viper.Get("server.ip"), viper.Get("server.port"))
+	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), mux) //example: 127.0.0.1:8080
 }
 
 func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {

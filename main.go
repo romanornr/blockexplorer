@@ -27,10 +27,10 @@ func init() {
 	}
 
 	fmt.Printf("Reading configuration from %s\n", viper.ConfigFileUsed())
+	fmt.Printf("Webserving starting using %s:%d\n", viper.GetString("server.ip"), viper.Get("server.port"))
 }
 
 func main() {
-	fmt.Println(viper.GetString("server.ip") + ":" + viper.GetString("server.port"))
 	connCfg := &btcrpcclient.ConnConfig{
 		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
 		User:         viper.GetString("rpc.username"),
@@ -54,12 +54,12 @@ func main() {
 	}
 	log.Printf("Block count: %d", blockCount)
 
-	mux := httprouter.New()
-	mux.GET("/", index)
-	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), mux) //example: 127.0.0.1:8080
+	router := httprouter.New()
+	router.GET("/", Index)
+	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), router) //example: 127.0.0.1:8080
 }
 
-func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	coin := viper.Get("coin.name")
 	err := tpl.ExecuteTemplate(w, "index.html", coin)
 	if err != nil {

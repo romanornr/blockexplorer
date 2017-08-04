@@ -13,6 +13,29 @@ import (
 
 var tpl *template.Template
 
+func rpcClient() *btcrpcclient.Client {
+
+	// Connect to local bitcoin/altcoin core RPC server using HTTP POST mode.
+	connCfg := &btcrpcclient.ConnConfig{
+		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
+		User:         viper.GetString("rpc.username"),
+		Pass:         viper.GetString("rpc.password"),
+		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
+		DisableTLS:   true, // Bitcoin core does not provide TLS by default
+	}
+
+	// Notice the notification parameter is nil since notifications are
+	// not supported in HTTP POST mode.
+	client, err := btcrpcclient.New(connCfg, nil)
+	if err != nil {
+		log.Fatal(err)
+		client.Shutdown()
+	}
+	//defer client.Shutdown()
+
+	return client
+}
+
 func init() {
 	tpl = template.Must(template.ParseGlob("website/*"))
 
@@ -31,28 +54,8 @@ func init() {
 }
 
 func main() {
-	connCfg := &btcrpcclient.ConnConfig{
-		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
-		User:         viper.GetString("rpc.username"),
-		Pass:         viper.GetString("rpc.password"),
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
 
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := btcrpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Shutdown()
-
-	// Get the current block count.
-	blockCount, err := client.GetBlockCount()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Block count: %d", blockCount)
+	test2()
 
 	router := httprouter.New()
 	router.GET("/", Index)
@@ -60,9 +63,19 @@ func main() {
 }
 
 func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+
 	coin := viper.Get("coin.name")
 	err := tpl.ExecuteTemplate(w, "index.html", coin)
 	if err != nil {
 		log.Println("errror")
 	}
+}
+
+func test2() {
+	client := rpcClient()
+	blockCount, err := client.GetBlockCount()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Block count: %d", blockCount)
 }

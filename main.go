@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -55,10 +56,9 @@ func init() {
 
 func main() {
 
-	test2()
-
 	router := httprouter.New()
 	router.GET("/", Index)
+	router.GET("/api/getdifficulty", GetDifficulty)
 	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), router) //example: 127.0.0.1:8080
 }
 
@@ -71,10 +71,10 @@ func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 }
 
-func test2() {
-	blockCount, err := client().GetBlockCount()
+func GetDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	info, err := client().GetDifficulty()
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Block count: %d", blockCount)
+	json.NewEncoder(w).Encode(info)
 }

@@ -13,7 +13,7 @@ import (
 
 var tpl *template.Template
 
-func rpcClient() *btcrpcclient.Client {
+func client() *btcrpcclient.Client {
 
 	// Connect to local bitcoin/altcoin core RPC server using HTTP POST mode.
 	connCfg := &btcrpcclient.ConnConfig{
@@ -72,8 +72,7 @@ func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 }
 
 func test2() {
-	client := rpcClient()
-	blockCount, err := client.GetBlockCount()
+	blockCount, err := client().GetBlockCount()
 	if err != nil {
 		log.Fatal(err)
 	}

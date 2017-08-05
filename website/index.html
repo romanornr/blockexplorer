@@ -6,12 +6,27 @@
 <!-- begin container -->
  <div class="container">
 
-    <h1>{{ . }} Blockchain Explorer</h1>
+
+      <table align="center">
+      <tr>
+         <td><img width=85 height=85 src="static/images/viacoin.png" class="coin-logo"></td>
+         <td vertical-align="center">
+            <h1 style="margin-top: 0">{{.}} <span class="hidden-xs">Blockchain Explorer</span></h1>
+            <p>up to block <span id="up-to-block">3976825</span>
+            </p>
+         </td>
+      </tr>
+   </table>
+
+<div class="row" id="search-row" style="margin-bottom: 10px">
+   <div class="col-sm-3"></div>
         <form class="form-inline my-6 my-lg-0">
       <input class="form-control mr-sm-2" type="text" placeholder="Address, transaction">
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
     </form>
     <br><br>
+    </div>
+  <br></br>
 
 <table class="table table-sm">
   <thead>

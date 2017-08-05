@@ -59,6 +59,15 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/api/getdifficulty", GetDifficulty)
+
+	fileServer := http.FileServer(http.Dir("static"))
+	router.GET("/static/*filepath", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		w.Header().Set("Vary", "Accept-Encoding")
+		w.Header().Set("Cache-Control", "public, max-age=7776000")
+		r.URL.Path = p.ByName("filepath")
+		fileServer.ServeHTTP(w, r)
+	})
+
 	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), router) //example: 127.0.0.1:8080
 }
 

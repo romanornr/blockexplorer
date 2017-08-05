@@ -55,7 +55,7 @@ func init() {
 }
 
 func main() {
-
+	GetLatestBlocks()
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/api/getdifficulty", GetDifficulty)
@@ -86,4 +86,20 @@ func GetDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params
 		log.Fatal(err)
 	}
 	json.NewEncoder(w).Encode(info)
+}
+
+// GetLatestBlocks gets 10 of the latest blocks
+func GetLatestBlocks() {
+	blockCount, err := client().GetBlockCount()
+	if err != nil {
+		log.Println(err)
+	}
+	for i := 0; i < 10; i++ {
+		prevBlock := blockCount - int64(i)
+		hash, err := client().GetBlockHash(prevBlock)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Printf("%d:%s\n", prevBlock, hash)
+	}
 }

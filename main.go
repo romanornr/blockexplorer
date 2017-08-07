@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/btcsuite/btcrpcclient"
 	"github.com/julienschmidt/httprouter"
@@ -13,6 +15,21 @@ import (
 )
 
 var tpl *template.Template
+
+//Handlers run concurrently but maps aren't thread-safe
+//a Mutex is used to ensure only 1 goroutine can update data
+type store struct {
+	data map[string]string
+	m    sync.RWMutex
+}
+
+//create the datastore
+var (
+	s = store{
+		data: map[string]string{},
+		m:    sync.RWMutex{},
+	}
+)
 
 func client() *btcrpcclient.Client {
 
@@ -39,7 +56,6 @@ func client() *btcrpcclient.Client {
 
 func init() {
 	tpl = template.Must(template.ParseGlob("website/*"))
-
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("config")
 	viper.SetConfigName("app")
@@ -55,10 +71,16 @@ func init() {
 }
 
 func main() {
-	GetLatestBlocks()
+	port := ":" + viper.GetString("server.port")
+	addr := flag.String("addr", port, "http service address")
+
+	flag.Parse()
+	network := viper.GetString("coin.symbol")
+
 	router := httprouter.New()
 	router.GET("/", Index)
-	router.GET("/api/getdifficulty", GetDifficulty)
+	router.GET("/api/"+network+"/getdifficulty", GetDifficulty)
+	router.GET("/api/"+network+"/blocks", GetLatestBlocks)
 
 	fileServer := http.FileServer(http.Dir("static"))
 	router.GET("/static/*filepath", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -68,7 +90,10 @@ func main() {
 		fileServer.ServeHTTP(w, r)
 	})
 
-	http.ListenAndServe(viper.GetString("server.ip")+":"+viper.GetString("server.port"), router) //example: 127.0.0.1:8080
+	err := http.ListenAndServe(*addr, router)
+	if err != nil {
+		log.Fatal("ListenAdnServe:", err)
+	}
 }
 
 func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -89,7 +114,7 @@ func GetDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params
 }
 
 // GetLatestBlocks gets 10 of the latest blocks
-func GetLatestBlocks() {
+func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	blockCount, err := client().GetBlockCount()
 	if err != nil {
 		log.Println(err)
@@ -100,6 +125,19 @@ func GetLatestBlocks() {
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Printf("%d:%s\n", prevBlock, hash)
+
+		test2, err := client().GetBlock(hash)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//fmt.Printf("%d:%s\n", prevBlock, hash)
+
+		data, err := json.Marshal(test2)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s\n", data)
+		json.NewEncoder(w).Encode(data)
 	}
+
 }

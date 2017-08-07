@@ -4,7 +4,7 @@ server:
 
 coin:
   name: Viacoin
-  symbol: VIA
+  symbol: via
   algo: scrypt
   blocktime: 24
 

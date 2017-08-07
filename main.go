@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcrpcclient"
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
@@ -115,10 +116,14 @@ func GetDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params
 
 // GetLatestBlocks gets 10 of the latest blocks
 func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	blockCount, err := client().GetBlockCount()
+	blockCount, err := client().GetBlockCount() //get the latest blocks
 	if err != nil {
 		log.Println(err)
 	}
+
+	var blocks []*btcjson.GetBlockVerboseResult
+
+	// blockheight - 1 in the loop. Get the blockhash from the height
 	for i := 0; i < 10; i++ {
 		prevBlock := blockCount - int64(i)
 		hash, err := client().GetBlockHash(prevBlock)
@@ -126,18 +131,13 @@ func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 			log.Println(err)
 		}
 
-		test2, err := client().GetBlock(hash)
+		block, err := client().GetBlockVerbose(hash)
 		if err != nil {
 			log.Fatal(err)
 		}
-		//fmt.Printf("%d:%s\n", prevBlock, hash)
 
-		data, err := json.Marshal(test2)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%s\n", data)
-		json.NewEncoder(w).Encode(data)
+		blocks = append(blocks, block)
+
 	}
-
+	json.NewEncoder(w).Encode(blocks)
 }

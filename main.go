@@ -10,9 +10,9 @@ import (
 	"sync"
 
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcrpcclient"
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
+	"github.com/btcsuite/btcd/rpcclient"
 )
 
 var tpl *template.Template
@@ -32,20 +32,20 @@ var (
 	}
 )
 
-func client() *btcrpcclient.Client {
 
+func client() *rpcclient.Client {
 	// Connect to local bitcoin/altcoin core RPC server using HTTP POST mode.
-	connCfg := &btcrpcclient.ConnConfig{
+	connCfg := &rpcclient.ConnConfig{
 		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
 		User:         viper.GetString("rpc.username"),
 		Pass:         viper.GetString("rpc.password"),
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
+		HTTPPostMode: true, // Viacoin core only supports HTTP POST mode
+		DisableTLS:   true, // Viacoin core does not provide TLS by default
 	}
 
 	// Notice the notification parameter is nil since notifications are
 	// not supported in HTTP POST mode.
-	client, err := btcrpcclient.New(connCfg, nil)
+	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
 		log.Fatal(err)
 		client.Shutdown()
@@ -95,6 +95,8 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAdnServe:", err)
 	}
+
+	defer client().Shutdown()
 }
 
 func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {

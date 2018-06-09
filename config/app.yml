@@ -10,6 +10,6 @@ coin:
 
 rpc:
   ip: 127.0.0.1
-  username: viarpc
-  password: viapass
-  port: 8332
+  username: via
+  password: via
+  port: 5222

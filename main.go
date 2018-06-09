@@ -72,6 +72,7 @@ func init() {
 }
 
 func main() {
+
 	port := ":" + viper.GetString("server.port")
 	addr := flag.String("addr", port, "http service address")
 
@@ -109,14 +110,14 @@ func Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 }
 
 func GetDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	info, err := client().GetDifficulty()
+	difficulty, err := client().GetDifficulty()
 	if err != nil {
 		log.Fatal(err)
 	}
-	json.NewEncoder(w).Encode(info)
+	json.NewEncoder(w).Encode(difficulty)
 }
 
-// GetLatestBlocks gets 10 of the latest blocks
+// GetxLatestBlocks gets x (int) latest blocks
 func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	blockCount, err := client().GetBlockCount() //get the latest blocks
 	if err != nil {

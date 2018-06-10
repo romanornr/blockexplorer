@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/wire"
 )
 
 func client() *rpcclient.Client {
@@ -53,6 +54,14 @@ func GetBlockHash(blockHeight int64) *chainhash.Hash  {
 		log.Fatal(err)
 	}
 	return h
+}
+
+func GetBlock(blockHash *chainhash.Hash) *wire.MsgBlock{
+	block, err := client().GetBlock(blockHash)
+	if err != nil{
+		log.Fatal(err)
+	}
+	return block
 }
 
 // get latest block info

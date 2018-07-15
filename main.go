@@ -13,6 +13,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/romanornr/cyberchain/database"
 )
 
 var tpl *template.Template
@@ -83,6 +84,7 @@ func main() {
 	router.GET("/", Index)
 	router.GET("/api/"+network+"/getdifficulty", GetDifficulty)
 	router.GET("/api/"+network+"/blocks", GetLatestBlocks)
+	router.GET("/api/"+network+"/block", GetBlock)
 
 	fileServer := http.FileServer(http.Dir("static"))
 	router.GET("/static/*filepath", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -143,4 +145,12 @@ func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 
 	}
 	json.NewEncoder(w).Encode(blocks)
+}
+
+func GetBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params){
+	x := database.ViewBlock("5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3")
+	xx := string(x)
+	//json.NewEncoder(w).SetIndent("", "    ")
+	json.NewEncoder(w).Encode(xx)
+	//fmt.Println(string(x))
 }

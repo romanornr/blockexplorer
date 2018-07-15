@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/btcsuite/btcd/wire"
 	"github.com/coreos/bbolt"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/spf13/viper"
@@ -11,6 +10,8 @@ import (
 	"path"
 	"runtime"
 	"time"
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 // initalize and read viper configuration
@@ -62,16 +63,26 @@ func setupDB() (*bolt.DB, error) {
 		}
 		return nil
 	})
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err = tx.CreateBucketIfNotExists([]byte("BlockHeight"))
+		if err != nil{
+			return fmt.Errorf("could not create blockheight bucket: %v", err)
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("could not setup buckets, %v", err)
 	}
+
 	fmt.Println("DB Setup Done")
 	return db, nil
 }
 
 // add a block to the database and use the CloneBytes() function to put the blocks to byte.
 // the blockhash string is the key. The value is all the data in the block
-func AddBlock(db *bolt.DB, blockHashString string, block *wire.MsgBlock) error {
+func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerboseResult) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Blocks"))
 		encoded, err := json.Marshal(block)
@@ -79,8 +90,31 @@ func AddBlock(db *bolt.DB, blockHashString string, block *wire.MsgBlock) error {
 			log.Fatalf("could not add block to database: %v", err)
 		}
 
+		// check if the previous blockheight is not higher than the current blockheight.
+		prevBlockHash, _ := chainhash.NewHashFromStr(block.PreviousHash)
+		prevBlockHeader := blockdata.GetBlockHeader(prevBlockHash)
+		if(int32(block.Height) < prevBlockHeader.Height){
+			log.Panic("Error: Previous blockheight is higher than the current blockheight. Something went wrong.")
+		}
 		return b.Put([]byte(blockHashString), encoded)
 	})
+	//IndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
+	return nil
+}
+
+func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockhashString string, blockHeight int64) error{
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Blockheight"))
+
+		// blockheight to byte
+		//bs := make([]byte, 8)
+		//fmt.Println(blockHeight)
+		//binary.BigEndian.PutUint64(bs, uint64(blockHeight))
+
+		//return b.Put([]byte(bs), []byte(blockhashString))
+		return b.Put([]byte(string(blockHeight)), []byte(blockhashString))
+	})
+	return nil
 }
 
 // view the block by giving the blockhash string
@@ -95,15 +129,38 @@ func ViewBlock(blockHashString string) []byte {
 		block = bucket.Get([]byte(blockHashString))
 		return nil
 	})
+
 	return block
 }
 
+func ViewBlockHashByBlockHeight(blockheight int64) []byte {
+	var hash []byte
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Blockheight"))
+		if bucket == nil {
+			return fmt.Errorf("bucket not found")
+		}
+
+		//bs := make([]byte, 8)
+		//binary.BigEndian.PutUint64(bs, uint64(blockheight))
+		//hash = bucket.Get([]byte(bs))
+		hash = bucket.Get([]byte(string(blockheight)))
+		return nil
+	})
+	return hash
+}
+
+
 func BuildDatabaseBlocks()  {
-	for i := int64(0); i < 100; i++ {
+	for i := int64(1); i < 100; i++ {
 		height := blockdata.GetBlockHash(i)
 		block := blockdata.GetBlock(height)
-		blockHashString := block.Header.BlockHash().String()
+		blockHashString := block.Hash
+		AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
 		AddBlock(db, blockHashString, block)
+
+		ViewBlockHashByBlockHeight(block.Height)
 	}
+
 }
 

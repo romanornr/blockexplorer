@@ -12,6 +12,7 @@ import (
 	"time"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"encoding/binary"
 )
 
 // initalize and read viper configuration
@@ -104,15 +105,13 @@ func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerbos
 
 func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockhashString string, blockHeight int64) error{
 	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("Blockheight"))
+		b, _ := tx.CreateBucketIfNotExists([]byte("Blockheight"))
 
-		// blockheight to byte
-		//bs := make([]byte, 8)
-		//fmt.Println(blockHeight)
-		//binary.BigEndian.PutUint64(bs, uint64(blockHeight))
+		//blockheight to byte
+		bs := make([]byte, 8)
+		binary.BigEndian.PutUint64(bs, uint64(blockHeight))
 
-		//return b.Put([]byte(bs), []byte(blockhashString))
-		return b.Put([]byte(string(blockHeight)), []byte(blockhashString))
+		return b.Put([]byte(bs), []byte(blockhashString))
 	})
 	return nil
 }
@@ -129,7 +128,6 @@ func ViewBlock(blockHashString string) []byte {
 		block = bucket.Get([]byte(blockHashString))
 		return nil
 	})
-
 	return block
 }
 
@@ -141,12 +139,13 @@ func ViewBlockHashByBlockHeight(blockheight int64) []byte {
 			return fmt.Errorf("bucket not found")
 		}
 
-		//bs := make([]byte, 8)
-		//binary.BigEndian.PutUint64(bs, uint64(blockheight))
-		//hash = bucket.Get([]byte(bs))
-		hash = bucket.Get([]byte(string(blockheight)))
+		bs := make([]byte, 8)
+		binary.BigEndian.PutUint64(bs, uint64(blockheight))
+
+		hash = bucket.Get([]byte(bs))
 		return nil
 	})
+	fmt.Println(hash)
 	return hash
 }
 

@@ -55,13 +55,6 @@ func GetBlockHash(blockHeight int64) *chainhash.Hash  {
 	return h
 }
 
-//func GetBlock(blockHash *chainhash.Hash) *wire.MsgBlock{
-//	block, err := client().GetBlock(blockHash)
-//	if err != nil{
-//		log.Fatal(err)
-//	}
-//	return block
-//}
 
 func GetBlock(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
 	block, err := client().GetBlockVerbose(blockhash)
@@ -96,4 +89,22 @@ func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult{
 	}
 
 	return block
+}
+
+func GetRawTransactionVerbose(transactionHash *chainhash.Hash) *btcjson.TxRawResult {
+	rawtx, err := client().GetRawTransactionVerbose(transactionHash)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return rawtx
+}
+
+// Decode the raw transaction hash into a human readable json
+func DecodeRawTransaction(transactionHash []byte) *btcjson.TxRawResult{
+	decodedRawTransaction, err := client().DecodeRawTransaction(transactionHash)
+	if err != nil {
+		log.Println(err)
+	}
+	return decodedRawTransaction
 }

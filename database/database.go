@@ -103,6 +103,8 @@ func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerbos
 	return nil
 }
 
+// link in the boltdb database the blockheight with the right blockhash.
+// this way the blockheight can be used to find the right blockhash.
 func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockhashString string, blockHeight int64) error{
 	return db.Update(func(tx *bolt.Tx) error {
 		b, _ := tx.CreateBucketIfNotExists([]byte("Blockheight"))
@@ -116,6 +118,29 @@ func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockhashString string, block
 	return nil
 }
 
+// link in botldb database the transaction with the right blockhash
+func AddIndexTransactionWithBlockHash(db *bolt.DB, blockhashString string, TransactionHash []string) error{
+	return db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
+		if err != nil {
+			log.Fatalf("Error: Could not save transaction together with the blockhash in the Transaction bucket: %v", err)
+		}
+
+	for _, element := range TransactionHash {
+		txHash, _ := chainhash.NewHashFromStr(element)
+		rawTransaction := blockdata.GetRawTransactionVerbose(txHash)
+		encoded, err := json.Marshal(rawTransaction)
+		if err != nil {
+			log.Fatalf("could not Transaction with blockhash to database database: %v", err)
+		}
+		b.Put(encoded, []byte(blockhashString))
+	}
+
+	return nil
+	})
+
+	return nil
+}
 // view the block by giving the blockhash string
 func ViewBlock(blockHashString string) []byte {
 	var block []byte
@@ -131,7 +156,7 @@ func ViewBlock(blockHashString string) []byte {
 	return block
 }
 
-func ViewBlockHashByBlockHeight(blockheight int64) []byte {
+func FetchBlockHashByBlockHeight(blockheight int64) []byte {
 	var hash []byte
 	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("Blockheight"))
@@ -149,16 +174,14 @@ func ViewBlockHashByBlockHeight(blockheight int64) []byte {
 	return hash
 }
 
-
 func BuildDatabaseBlocks()  {
-	for i := int64(1); i < 100; i++ {
+	for i := int64(1); i < 1000; i++ {
 		height := blockdata.GetBlockHash(i)
 		block := blockdata.GetBlock(height)
 		blockHashString := block.Hash
 		AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
 		AddBlock(db, blockHashString, block)
-
-		ViewBlockHashByBlockHeight(block.Height)
+		AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
 	}
 
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"encoding/binary"
+	"bytes"
+	"encoding/gob"
 )
 
 // initalize and read viper configuration
@@ -86,20 +88,21 @@ func setupDB() (*bolt.DB, error) {
 func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerboseResult) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Blocks"))
-		encoded, err := json.Marshal(block)
-		if err != nil {
-			log.Fatalf("could not add block to database: %v", err)
-		}
+
+		var result bytes.Buffer
+		encoder := gob.NewEncoder(&result)
+		encoder.Encode(block)
 
 		// check if the previous blockheight is not higher than the current blockheight.
 		prevBlockHash, _ := chainhash.NewHashFromStr(block.PreviousHash)
 		prevBlockHeader := blockdata.GetBlockHeader(prevBlockHash)
+
 		if(int32(block.Height) < prevBlockHeader.Height){
 			log.Panic("Error: Previous blockheight is higher than the current blockheight. Something went wrong.")
 		}
-		return b.Put([]byte(blockHashString), encoded)
+
+		return b.Put([]byte(blockHashString), result.Bytes())
 	})
-	//IndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
 	return nil
 }
 
@@ -150,7 +153,9 @@ func ViewBlock(blockHashString string) []byte {
 			return fmt.Errorf("bucket not found")
 		}
 
-		block = bucket.Get([]byte(blockHashString))
+		e := bucket.Get([]byte(blockHashString))
+		decoder := gob.NewDecoder(bytes.NewReader(e))
+		decoder.Decode(block)
 		return nil
 	})
 	return block
@@ -179,9 +184,9 @@ func BuildDatabaseBlocks()  {
 		height := blockdata.GetBlockHash(i)
 		block := blockdata.GetBlock(height)
 		blockHashString := block.Hash
-		AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
+		//AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
 		AddBlock(db, blockHashString, block)
-		AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
+		//AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
 	}
 
 }

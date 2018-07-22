@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/romanornr/cyberchain/database"
+	"bytes"
+	"encoding/gob"
 )
 
 var tpl *template.Template
@@ -149,8 +151,9 @@ func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 
 func GetBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params){
 	x := database.ViewBlock("5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3")
-	xx := string(x)
-	//json.NewEncoder(w).SetIndent("", "    ")
-	json.NewEncoder(w).Encode(xx)
-	//fmt.Println(string(x))
+
+	var block *btcjson.GetBlockVerboseResult
+	decoder := gob.NewDecoder(bytes.NewReader(x))
+	decoder.Decode(&block)
+	fmt.Println(block) // <nil> //need fix
 }

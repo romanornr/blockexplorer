@@ -153,9 +153,7 @@ func ViewBlock(blockHashString string) []byte {
 			return fmt.Errorf("bucket not found")
 		}
 
-		e := bucket.Get([]byte(blockHashString))
-		decoder := gob.NewDecoder(bytes.NewReader(e))
-		decoder.Decode(block)
+		block = bucket.Get([]byte(blockHashString))
 		return nil
 	})
 	return block

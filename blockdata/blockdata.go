@@ -3,22 +3,23 @@ package blockdata
 import (
 	"log"
 	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
+	client2 "github.com/romanornr/cyberchain/client"
 )
 
 func client() *rpcclient.Client {
 	// Connect to local bitcoin/altcoin core RPC server using HTTP POST mode.
-	connCfg := &rpcclient.ConnConfig{
-		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332
-		User:         viper.GetString("rpc.username"),
-		Pass:         viper.GetString("rpc.password"),
-		HTTPPostMode: true, // Viacoin core only supports HTTP POST mode
-		DisableTLS:   true, // Viacoin core does not provide TLS by default
-	}
+	//connCfg := &rpcclient.ConnConfig{
+	//	Host:         "127.0.0.1:5222",
+	//	User:         "via",
+	//	Pass:         "via",
+	//	HTTPPostMode: true, // Viacoin core only supports HTTP POST mode
+	//	DisableTLS:   true, // Viacoin core does not provide TLS by default
+	//}
 
+	connCfg := client2.LoadConfig()c,
 	// Notice the notification parameter is nil since notifications are
 	// not supported in HTTP POST mode.
 	client, err := rpcclient.New(connCfg, nil)

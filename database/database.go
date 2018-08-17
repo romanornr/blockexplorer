@@ -22,13 +22,13 @@ import (
 func init() {
 
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("config")
+	viper.AddConfigPath("../../config")
 	viper.SetConfigName("app")
 
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatal("No configuration file loaded ! Please check the config folder")
+		log.Fatal("Noo configuration file loaded ! Please check the config folder")
 	}
 
 	fmt.Printf("Reading configuration from %s\n", viper.ConfigFileUsed())
@@ -186,16 +186,3 @@ func FetchBlockHashByBlockHeight(blockheight int64) []byte {
 	fmt.Println(hash)
 	return hash
 }
-
-func BuildDatabaseBlocks()  {
-	for i := int64(1); i < 1000; i++ {
-		blockhash := blockdata.GetBlockHash(i)
-		block := blockdata.GetBlock(blockhash)
-		//AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
-		AddBlock(db, block.Hash, block)
-		//AddTransaction(db, block.Tx)
-		//AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
-	}
-
-}
-

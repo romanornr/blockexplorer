@@ -1,11 +1,9 @@
-package main
+package rebuilddb
 
 import (
 	"testing"
-	"github.com/romanornr/cyberchain/database"
 )
 
-func Testmain(t *testing.T) {
-	//now := time.Now().UTC()
-	database.BuildDatabaseBlocks()
+func TestBuild(t *testing.T) {
+	BuildDatabaseBlocks()
 }

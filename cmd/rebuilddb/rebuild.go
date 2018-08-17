@@ -1,13 +1,19 @@
-package main
+package rebuilddb
 
 import (
-	"time"
-	"fmt"
-	"github.com/romanornr/cyberchain/database"
+	"github.com/romanornr/cyberchain/blockdata"
 )
 
-func main() {
-	now := time.Now().UTC()
-	database.BuildDatabaseBlocks()
-	fmt.Println("Time elapsed: ", time.Since(now))
+func BuildDatabaseBlocks() {
+	for i := int64(1); i < 100000; i++ {
+		//blockhash := blockdata.GetBlockHash(i) ==>
+		//fmt.Println(blockdata.GetBlockHash(i))
+		blockdata.GetBlockHash(i)
+		//block := blockdata.GetBlock(blockhash) ==>
+		//AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
+		//AddBlock(db, block.Hash, block) ==>
+		//AddTransaction(db, block.Tx)
+		//AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
+	}
 }
+

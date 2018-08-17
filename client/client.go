@@ -36,18 +36,15 @@ var (
 
 // config path returns a string which should look
 // like: /home/username/go/src/github.com/romanornr/projectname/client/config
-func getconfigPath() string {
+func GetconfigPath() string {
 	path := strings.Split(basepath, "client")
 	configPath := path[:len(path)-1][0] + "config"
 	return configPath
 }
 
-// load config file from config/app.yml with viper
-// the config file should contain the correct RPC details
-func LoadConfig() *rpcclient.ConnConfig {
-
+func GetViperConfig() error {
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(getconfigPath())
+	viper.AddConfigPath(GetconfigPath())
 	viper.SetConfigName("app")
 
 	err := viper.ReadInConfig()
@@ -55,6 +52,14 @@ func LoadConfig() *rpcclient.ConnConfig {
 	if err != nil {
 		log.Fatalf("No configuration file loaded !\n%s", err)
 	}
+	return err
+}
+
+// load config file from config/app.yml with viper
+// the config file should contain the correct RPC details
+func LoadConfig() *rpcclient.ConnConfig {
+
+	GetViperConfig()
 
 	connCfg := &rpcclient.ConnConfig{
 		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), //127.0.0.1:8332

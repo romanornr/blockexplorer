@@ -14,30 +14,20 @@ import (
 	"encoding/binary"
 	"bytes"
 	"encoding/gob"
+	"github.com/romanornr/cyberchain/client"
 )
+
+var db *bolt.DB
+var open bool
 
 // initalize and read viper configuration
 // create or Open database with the Open() function
 // setup the database with the SetupDB function
 func init() {
-
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../../config")
-	viper.SetConfigName("app")
-
-	err := viper.ReadInConfig()
-
-	if err != nil {
-		log.Fatal("Noo configuration file loaded ! Please check the config folder")
-	}
-
-	fmt.Printf("Reading configuration from %s\n", viper.ConfigFileUsed())
-	Open()
-	setupDB()
+	client.GetViperConfig()
+	//Open()
+	//SetupDB()
 }
-
-var db *bolt.DB
-var open bool
 
 // open or Create a databse in cmd/rebuilddb directory
 func Open() error {
@@ -45,7 +35,7 @@ func Open() error {
 	_, filename, _, _ := runtime.Caller(0)       // get full path of this file
 	coinsymbol := viper.GetString("coin.symbol") // example: btc or via
 	dbfile := path.Join(path.Dir(filename), coinsymbol+".db") //btc.db or via.db
-	config := &bolt.Options{Timeout: 1 * time.Second}
+	config := &bolt.Options{Timeout: 10 * time.Second}
 	db, err = bolt.Open(dbfile, 0600, config)
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +45,7 @@ func Open() error {
 }
 
 // setup database with a bucket called Blocks
-func setupDB() (*bolt.DB, error) {
+func SetupDB() (*bolt.DB, error) {
 	var err error
 
 	err = db.Update(func(tx *bolt.Tx) error {

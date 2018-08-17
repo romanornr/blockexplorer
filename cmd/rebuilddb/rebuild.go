@@ -2,9 +2,12 @@ package rebuilddb
 
 import (
 	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
 )
 
 func BuildDatabaseBlocks() {
+	database.Open()
+	database.SetupDB()
 	for i := int64(1); i < 100000; i++ {
 		//blockhash := blockdata.GetBlockHash(i) ==>
 		//fmt.Println(blockdata.GetBlockHash(i))

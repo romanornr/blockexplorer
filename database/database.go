@@ -1,7 +1,6 @@
 package database
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/coreos/bbolt"
 	"github.com/romanornr/cyberchain/blockdata"
@@ -103,7 +102,6 @@ func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerbos
 
 		return b.Put([]byte(blockHashString), result.Bytes())
 	})
-	return nil
 }
 
 // link in the boltdb database the blockheight with the right blockhash.
@@ -118,11 +116,10 @@ func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockhashString string, block
 
 		return b.Put([]byte(bs), []byte(blockhashString))
 	})
-	return nil
 }
 
 // link in botldb database the transaction with the right blockhash
-func AddIndexTransactionWithBlockHash(db *bolt.DB, blockhashString string, TransactionHash []string) error{
+func AddTransaction(db *bolt.DB, TransactionHash []string) error{
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
 		if err != nil {
@@ -132,23 +129,36 @@ func AddIndexTransactionWithBlockHash(db *bolt.DB, blockhashString string, Trans
 	for _, element := range TransactionHash {
 		txHash, _ := chainhash.NewHashFromStr(element)
 		rawTransaction := blockdata.GetRawTransactionVerbose(txHash)
-		encoded, err := json.Marshal(rawTransaction)
-		if err != nil {
-			log.Fatalf("could not Transaction with blockhash to database database: %v", err)
-		}
-		b.Put(encoded, []byte(blockhashString))
-	}
+		//rawTransaction := blockdata.GetRawTransaction(txHash)
 
+		var result bytes.Buffer
+		encoder := gob.NewEncoder(&result)
+		encoder.Encode(rawTransaction.Hex)
+		b.Put(txHash.CloneBytes(), []byte(rawTransaction.Hex))
+	}
 	return nil
 	})
-
-	return nil
 }
+
 // view the block by giving the blockhash string
 func ViewBlock(blockHashString string) []byte {
 	var block []byte
 	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("Blocks"))
+		if bucket == nil {
+			return fmt.Errorf("bucket not found")
+		}
+
+		block = bucket.Get([]byte(blockHashString))
+		return nil
+	})
+	return block
+}
+
+func FetchTransactionHashByBlockhash(blockHashString string) []byte {
+	var block []byte
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Transactions"))
 		if bucket == nil {
 			return fmt.Errorf("bucket not found")
 		}
@@ -179,11 +189,11 @@ func FetchBlockHashByBlockHeight(blockheight int64) []byte {
 
 func BuildDatabaseBlocks()  {
 	for i := int64(1); i < 1000; i++ {
-		height := blockdata.GetBlockHash(i)
-		block := blockdata.GetBlock(height)
-		blockHashString := block.Hash
+		blockhash := blockdata.GetBlockHash(i)
+		block := blockdata.GetBlock(blockhash)
 		//AddIndexBlockHeightWithBlockHash(db, blockHashString, block.Height)
-		AddBlock(db, blockHashString, block)
+		AddBlock(db, block.Hash, block)
+		//AddTransaction(db, block.Tx)
 		//AddIndexTransactionWithBlockHash(db, blockHashString, block.Tx)
 	}
 

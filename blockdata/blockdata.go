@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcutil"
 )
 
 func client() *rpcclient.Client {
@@ -57,12 +58,20 @@ func GetBlockHash(blockHeight int64) *chainhash.Hash  {
 
 
 func GetBlock(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
-	block, err := client().GetBlockVerbose(blockhash)
+	block, err := client().GetBlockVerboseTx(blockhash)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return block
 }
+
+//func GetBlock(blockhash *chainhash.Hash) *wire.MsgBlock {
+//	block, err := client().GetBlock(blockhash)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	return block
+//}
 
 func GetBlockHeader(blockhash *chainhash.Hash) *btcjson.GetBlockHeaderVerboseResult{
 	block, err := client().GetBlockHeaderVerbose(blockhash)
@@ -97,6 +106,14 @@ func GetRawTransactionVerbose(transactionHash *chainhash.Hash) *btcjson.TxRawRes
 		log.Println(err)
 	}
 
+	return rawtx
+}
+
+func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx{
+	rawtx, err := client().GetRawTransaction(transactionHash)
+	if err != nil {
+		log.Println(err)
+	}
 	return rawtx
 }
 

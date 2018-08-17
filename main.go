@@ -13,6 +13,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/rpcclient"
+	_"encoding/gob"
+	_"bytes"
 	"github.com/romanornr/cyberchain/database"
 	"encoding/gob"
 	"bytes"
@@ -86,7 +88,8 @@ func main() {
 	router.GET("/", Index)
 	router.GET("/api/"+network+"/getdifficulty", GetDifficulty)
 	router.GET("/api/"+network+"/blocks", GetLatestBlocks)
-	router.GET("/api/"+network+"/block", GetBlock)
+	router.GET("/api/"+network+"/block",
+		GetBlock)
 
 	fileServer := http.FileServer(http.Dir("static"))
 	router.GET("/static/*filepath", func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -150,6 +153,7 @@ func GetLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 }
 
 func GetBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params){
+
 	x := database.ViewBlock("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
 
 	var block *btcjson.GetBlockVerboseResult
@@ -157,4 +161,23 @@ func GetBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params){
 	decoder.Decode(&block)
 
 	json.NewEncoder(w).Encode(&block)
+	//x := database.ViewBlock("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
+	//
+	//var block *btcjson.GetBlockVerboseResult
+	//decoder := gob.NewDecoder(bytes.NewReader(x))
+	//decoder.Decode(&block)
+	//x := database.FetchTransactionHashByBlockhash("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
+
+	//var block *btcjson.TxRawResult
+	//decoder := gob.NewDecoder(bytes.NewReader(x))
+	//decoder.Decode(&block)
+	//
+
+	//var block *btcjson.TxRawDecodeResult
+	////fmt.Println(btcjson.DecodeRawTransactionCmd{x})
+	//decoder := gob.NewDecoder(bytes.NewReader(x))
+	//decoder.Decode(&block)
+
+	//json.NewEncoder(w).Encode(string(x))
+	//fmt.Println(btcjson.NewDecodeRawTransactionCmd(string(x)))
 }

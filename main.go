@@ -69,7 +69,7 @@ func init() {
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatal("No configuration file loaded ! Please check the config folder")
+	//	log.Fatal("No configuration file loaded ! Please check the config folder")
 	}
 
 	fmt.Printf("Reading configuration from %s\n", viper.ConfigFileUsed())

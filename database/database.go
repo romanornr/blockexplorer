@@ -23,10 +23,17 @@ var open bool
 // initalize and read viper configuration
 // create or Open database with the Open() function
 // setup the database with the SetupDB function
-func init() {
+func GetDatabaseInstance() *bolt.DB{
+	if db != nil {
+		return db
+	}
 	client.GetViperConfig()
-	//Open()
-	//SetupDB()
+	Open()
+	SetupDB()
+	//instance := new(*bolt.DB)
+	fmt.Println("new instance")
+	return db
+
 }
 
 // open or Create a databse in cmd/rebuilddb directory

@@ -35,9 +35,25 @@ func GetBlockHash(blockHeight int64) *chainhash.Hash  {
 	return h
 }
 
+func GetBlockHashAsync(blockHeight int64) *chainhash.Hash  {
+	f, err := rpclient.GetBlockHashAsync(blockHeight).Receive()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return f
+}
 
 func GetBlock(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
-	block, err := rpclient.GetBlockVerboseTx(blockhash)
+	//block, err := rpclient.GetBlockVerboseTx(blockhash)
+	block, err := rpclient.GetBlockVerbose(blockhash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return block
+}
+
+func GetBlockAsync(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
+	block, err := rpclient.GetBlockVerboseAsync(blockhash).Receive()
 	if err != nil {
 		log.Fatal(err)
 	}

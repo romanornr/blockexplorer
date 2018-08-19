@@ -43,13 +43,13 @@ func GetBlockHashAsync(blockHeight int64) *chainhash.Hash  {
 	return f
 }
 
-func GetBlock(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
+func GetBlock(blockhash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 	//block, err := rpclient.GetBlockVerboseTx(blockhash)
 	block, err := rpclient.GetBlockVerbose(blockhash)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return block
+	//if err != nil {
+	//	log.Fatalf("Block with hash: %s: %s\n", blockhash.String(), err)
+	//}
+	return block, err
 }
 
 func GetBlockAsync(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {

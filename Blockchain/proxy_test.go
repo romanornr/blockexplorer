@@ -5,6 +5,9 @@ import (
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"encoding/gob"
+	"bytes"
+	"github.com/btcsuite/btcd/btcjson"
 )
 
 func BuildMockDatabase() {
@@ -44,6 +47,7 @@ func TestBlockListProxy_FindBlock(t *testing.T) {
 	}
 }
 
+
 func TestBlockList_FindBlockByRPC(t *testing.T) {
 	proxy := BlockListProxy{
 		Database: &BlockList{},
@@ -62,6 +66,46 @@ func TestBlockList_FindBlockByRPC(t *testing.T) {
 
 	if block == nil {
 		t.Errorf("Block %s is empty", blockhash)
+	}
+}
+
+func TestBlockList_FindBlock(t *testing.T) {
+	proxy := BlockListProxy{
+		Database: &BlockList{},
+	}
+
+	hash := "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6"
+	block := proxy.Database.FindBlock(hash)
+	if block == nil {
+		t.Errorf("Block %s not found", hash)
+	}
+}
+
+func TestAddBlockToDatabase(t *testing.T) {
+	proxy := BlockListProxy{
+		Database: &BlockList{},
+	}
+
+	hash := "ec02e1f752d293c2daefd4c0f66801df8cb6ee602bb1ccf219b0c55b55b123a2"
+	blockhash ,_ := chainhash.NewHashFromStr(hash)
+
+	block, err := proxy.RPC.FindBlockByRPC(blockhash)
+	if err != nil {
+		t.Errorf("Block %s not found but it should be found", blockhash)
+	}
+
+	//proxy.Database.addBlock(block)
+	proxy.AddBlockToDatabase(block)
+	blockInDatabase := database.ViewBlock(hash)
+	if blockInDatabase == nil {
+		t.Errorf("Added block in Database but somehow not found after adding with hash: %s\n", hash)
+	}
+	var blockjson *btcjson.GetBlockVerboseResult
+	decoder := gob.NewDecoder(bytes.NewReader(blockInDatabase))
+	decoder.Decode(&blockjson)
+
+	if blockjson.Hash != hash {
+		t.Errorf("Block with hash %s added to the database but the hash does not match with what's in the database", hash)
 	}
 
 }

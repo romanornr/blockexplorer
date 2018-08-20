@@ -1,21 +1,23 @@
 package Blockchain
 
 import (
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/romanornr/cyberchain/database"
-	"encoding/gob"
 	"bytes"
-	"github.com/romanornr/cyberchain/blockdata"
+	"encoding/gob"
+
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
 )
 
 type Block struct {
 	Block *btcjson.GetBlockVerboseResult
 }
 
-type BlockFinder interface { // might use to fetch
+type BlockFinder interface {
+	// might use to fetch
 	FindBlock(hash *chainhash.Hash) (Block, error)
-	//FindBlockByRPC(hash *chainhash.Hash) (Block)
+	// FindBlockByRPC(hash *chainhash.Hash) (Block)
 }
 
 type BlockList []Block
@@ -24,10 +26,10 @@ type BlockListCache []Block
 var db = database.GetDatabaseInstance()
 
 type BlockListProxy struct {
-	Database *BlockList
-	RPC *BlockList
-	StackCache BlockListCache
-	Stacksize int
+	Database            *BlockList
+	RPC                 *BlockList
+	StackCache          BlockListCache
+	Stacksize           int
 	LastSearchUsedCache bool
 }
 
@@ -37,7 +39,7 @@ type BlockListProxy struct {
 func (b *BlockListProxy) FindBlock(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 
 	//block := b.Database.FindBlock(hash.String())
-	block := b.Database.FindBlock(hash.String())
+	block := b.Database.FindBlockInDatabase(hash.String())
 
 	if block == nil {
 		blockjson, _ := b.RPC.FindBlockByRPC(hash)
@@ -53,7 +55,7 @@ func (b *BlockListProxy) FindBlock(hash *chainhash.Hash) (*btcjson.GetBlockVerbo
 
 }
 
-func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error){
+func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 	block, err := blockdata.GetBlock(hash)
 	if err != nil {
 		return nil, err
@@ -62,7 +64,7 @@ func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerbo
 }
 
 // find the block in the database by giving the blockhash
-func (b *BlockList) FindBlock(hash string) []byte {
+func (b *BlockList) FindBlockInDatabase(hash string) []byte {
 	return database.ViewBlock(hash)
 }
 
@@ -72,22 +74,21 @@ func (b *BlockListProxy) AddBlockToDatabase(block *btcjson.GetBlockVerboseResult
 	database.AddBlock(db, block.Hash, block)
 }
 
-
 //func (b *BlockList) addBlock(block *btcjson.GetBlockVerboseResult) {
 //	database.AddBlock(db, block.Hash, block)
 //}
 
 // addBlockToStack takes the user argument and adds it to the stack in place.
 // if the stack is full it removes the first element on it before adding.
-func (b *BlockListProxy) addBlockToStack(block Block) {
-	if len(b.StackCache) >=  b.Stacksize {
-		b.StackCache = append(b.StackCache[1:], block)
+func (b *BlockListProxy) addBlockToStack(block *btcjson.GetBlockVerboseResult) {
+	if len(b.StackCache) >= b.Stacksize {
+		b.StackCache = append(b.StackCache[1:], Block{block})
 	} else {
 		b.StackCache.addBlockToCache(block)
 	}
 }
 
 // add a new block to the end of the Block slice
-func (b *BlockListCache) addBlockToCache(newBlock Block) {
-	*b = append(*b, newBlock)
+func (b *BlockListCache) addBlockToCache(newBlock *btcjson.GetBlockVerboseResult) {
+	*b = append(*b, Block{newBlock})
 }

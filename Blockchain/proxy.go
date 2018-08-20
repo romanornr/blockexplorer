@@ -1,21 +1,23 @@
 package Blockchain
 
 import (
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/romanornr/cyberchain/database"
-	"encoding/gob"
 	"bytes"
-	"github.com/romanornr/cyberchain/blockdata"
+	"encoding/gob"
+
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
 )
 
 type Block struct {
 	Block *btcjson.GetBlockVerboseResult
 }
 
-type BlockFinder interface { // might use to fetch
+type BlockFinder interface {
+	// might use to fetch
 	FindBlock(hash *chainhash.Hash) (Block, error)
-	//FindBlockByRPC(hash *chainhash.Hash) (Block)
+	// FindBlockByRPC(hash *chainhash.Hash) (Block)
 }
 
 type BlockList []Block
@@ -24,7 +26,7 @@ var db = database.GetDatabaseInstance()
 
 type BlockListProxy struct {
 	Database *BlockList
-	RPC *BlockList
+	RPC      *BlockList
 }
 
 // find block by looking into the database
@@ -33,7 +35,6 @@ type BlockListProxy struct {
 func (b *BlockListProxy) FindBlock(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 
 	block := b.Database.FindBlock(hash.String())
-
 
 	if block == nil {
 		blockjson, _ := b.RPC.FindBlockByRPC(hash)
@@ -49,7 +50,7 @@ func (b *BlockListProxy) FindBlock(hash *chainhash.Hash) (*btcjson.GetBlockVerbo
 
 }
 
-func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error){
+func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 	block, err := blockdata.GetBlock(hash)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,7 @@ func (b *BlockList) FindBlock(hash string) []byte {
 
 func (b *BlockListProxy) AddBlockToDatabase(block *btcjson.GetBlockVerboseResult) {
 	b.Database.addBlock(block)
-	//can do something like b.database.addTransaction(block)
+	// can do something like b.database.addTransaction(block)
 }
 
 func (b *BlockList) addBlock(block *btcjson.GetBlockVerboseResult) {

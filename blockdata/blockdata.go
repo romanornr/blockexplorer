@@ -2,6 +2,7 @@ package blockdata
 
 import (
 	"log"
+
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
@@ -11,7 +12,7 @@ import (
 var rpclient = client.GetInstance()
 
 // get current difficulty of a block
-func GetDifficulty() float64{
+func GetDifficulty() float64 {
 	difficulty, err := rpclient.GetDifficulty()
 	if err != nil {
 		log.Fatal(err)
@@ -19,23 +20,23 @@ func GetDifficulty() float64{
 	return difficulty
 }
 
-func GetBlockCount() int64{
+func GetBlockCount() int64 {
 	c, err := rpclient.GetBlockCount()
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	return c
 }
 
-func GetBlockHash(blockHeight int64) *chainhash.Hash  {
+func GetBlockHash(blockHeight int64) *chainhash.Hash {
 	h, err := rpclient.GetBlockHash(blockHeight)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	return h
 }
 
-func GetBlockHashAsync(blockHeight int64) *chainhash.Hash  {
+func GetBlockHashAsync(blockHeight int64) *chainhash.Hash {
 	f, err := rpclient.GetBlockHashAsync(blockHeight).Receive()
 	if err != nil {
 		log.Fatal(err)
@@ -44,11 +45,11 @@ func GetBlockHashAsync(blockHeight int64) *chainhash.Hash  {
 }
 
 func GetBlock(blockhash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
-	//block, err := rpclient.GetBlockVerboseTx(blockhash)
+	// block, err := rpclient.GetBlockVerboseTx(blockhash)
 	block, err := rpclient.GetBlockVerbose(blockhash)
-	//if err != nil {
-	//	log.Fatalf("Block with hash: %s: %s\n", blockhash.String(), err)
-	//}
+	// if err != nil {
+	// 	log.Fatalf("Block with hash: %s: %s\n", blockhash.String(), err)
+	// }
 	return block, err
 }
 
@@ -60,25 +61,25 @@ func GetBlockAsync(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
 	return block
 }
 
-//func GetBlock(blockhash *chainhash.Hash) *wire.MsgBlock {
-//	block, err := client().GetBlock(blockhash)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	return block
-//}
+// func GetBlock(blockhash *chainhash.Hash) *wire.MsgBlock {
+// 	block, err := client().GetBlock(blockhash)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return block
+// }
 
-func GetBlockHeader(blockhash *chainhash.Hash) *btcjson.GetBlockHeaderVerboseResult{
+func GetBlockHeader(blockhash *chainhash.Hash) *btcjson.GetBlockHeaderVerboseResult {
 	block, err := rpclient.GetBlockHeaderVerbose(blockhash)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	return block
 }
 
 // get latest block info
-func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult{
-	blockCount, err := rpclient.GetBlockCount() //get the latest blocks
+func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult {
+	blockCount, err := rpclient.GetBlockCount() // get the latest blocks
 	if err != nil {
 		log.Println(err)
 	}
@@ -104,7 +105,7 @@ func GetRawTransactionVerbose(transactionHash *chainhash.Hash) *btcjson.TxRawRes
 	return rawtx
 }
 
-func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx{
+func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx {
 	rawtx, err := rpclient.GetRawTransaction(transactionHash)
 	if err != nil {
 		log.Println(err)
@@ -113,7 +114,7 @@ func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx{
 }
 
 // Decode the raw transaction hash into a human readable json
-func DecodeRawTransaction(transactionHash []byte) *btcjson.TxRawResult{
+func DecodeRawTransaction(transactionHash []byte) *btcjson.TxRawResult {
 	decodedRawTransaction, err := rpclient.DecodeRawTransaction(transactionHash)
 	if err != nil {
 		log.Println(err)

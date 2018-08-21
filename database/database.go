@@ -99,7 +99,7 @@ func AddBlock(db *bolt.DB, blockHash string, block *btcjson.GetBlockVerboseResul
 
 		// check if the previous blockheight is not higher than the current blockheight.
 		prevBlockHash, _ := chainhash.NewHashFromStr(block.PreviousHash)
-		prevBlockHeader := blockdata.GetBlockHeader(prevBlockHash)
+		prevBlockHeader, _ := blockdata.GetBlockHeader(prevBlockHash)
 
 		if int32(block.Height) < prevBlockHeader.Height {
 			log.Panic("Error: Previous blockheight is higher than the current blockheight. Something went wrong.")
@@ -107,6 +107,18 @@ func AddBlock(db *bolt.DB, blockHash string, block *btcjson.GetBlockVerboseResul
 
 		return b.Put([]byte(blockHash), result.Bytes())
 	})
+}
+
+func GetLastBlock(db *bolt.DB) ([]byte, []byte) {
+	var key, value []byte
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Blocks"))
+		c := b.Cursor()
+
+		key, value = c.Last()
+		return nil
+	})
+	return key, value
 }
 
 // link in the boltdb database the blockheight with the right blockhash.

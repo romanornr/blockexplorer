@@ -69,12 +69,14 @@ func GetBlockAsync(blockhash *chainhash.Hash) *btcjson.GetBlockVerboseResult {
 // 	return block
 // }
 
-func GetBlockHeader(blockhash *chainhash.Hash) *btcjson.GetBlockHeaderVerboseResult {
+func GetBlockHeader(blockhash *chainhash.Hash) (*btcjson.GetBlockHeaderVerboseResult, error) {
 	block, err := rpclient.GetBlockHeaderVerbose(blockhash)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return block
+	return block, err
+}
+
+func GetBlockHeaderVerbose(blockhash *chainhash.Hash) (*btcjson.GetBlockHeaderVerboseResult, error) {
+	block, err := rpclient.GetBlockHeaderVerbose(blockhash)
+	return block, err
 }
 
 // get latest block info

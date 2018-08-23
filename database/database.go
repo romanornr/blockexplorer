@@ -89,7 +89,7 @@ func SetupDB() (*bolt.DB, error) {
 
 // add a block to the database and use the CloneBytes() function to put the blocks to byte.
 // the blockhash string is the key. The value is all the data in the block
-func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerboseResult) error {
+func AddBlock(db *bolt.DB, blockHash string, block *btcjson.GetBlockVerboseResult) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Blocks"))
 
@@ -99,14 +99,26 @@ func AddBlock(db *bolt.DB, blockHashString string, block *btcjson.GetBlockVerbos
 
 		// check if the previous blockheight is not higher than the current blockheight.
 		prevBlockHash, _ := chainhash.NewHashFromStr(block.PreviousHash)
-		prevBlockHeader := blockdata.GetBlockHeader(prevBlockHash)
+		prevBlockHeader, _ := blockdata.GetBlockHeader(prevBlockHash)
 
 		if int32(block.Height) < prevBlockHeader.Height {
 			log.Panic("Error: Previous blockheight is higher than the current blockheight. Something went wrong.")
 		}
 
-		return b.Put([]byte(blockHashString), result.Bytes())
+		return b.Put([]byte(blockHash), result.Bytes())
 	})
+}
+
+func GetLastBlock(db *bolt.DB) ([]byte, []byte) {
+	var key, value []byte
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Blocks"))
+		c := b.Cursor()
+
+		key, value = c.Last()
+		return nil
+	})
+	return key, value
 }
 
 // link in the boltdb database the blockheight with the right blockhash.
@@ -164,7 +176,7 @@ func ViewBlock(blockHashString string) []byte {
 	return block
 }
 
-func FetchTransactionHashByBlockhash(blockHashString string) []byte {
+func FetchTransactionHashByBlockhash(blockHash string) []byte {
 	var block []byte
 	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("Transactions"))
@@ -172,7 +184,7 @@ func FetchTransactionHashByBlockhash(blockHashString string) []byte {
 			return errBucketNotFound
 		}
 
-		block = bucket.Get([]byte(blockHashString))
+		block = bucket.Get([]byte(blockHash))
 		return nil
 	})
 	return block

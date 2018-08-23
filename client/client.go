@@ -1,12 +1,13 @@
 package client
 
 import (
-	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/spf13/viper"
 	"log"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/spf13/viper"
 )
 
 var instance *rpcclient.Client
@@ -36,7 +37,7 @@ var (
 
 // config path returns a string which should look
 // like: /home/username/go/src/github.com/romanornr/projectname/client/config
-func GetconfigPath() string {
+func GetConfigPath() string {
 	path := strings.Split(basepath, "client")
 	configPath := path[:len(path)-1][0] + "config"
 	return configPath
@@ -44,7 +45,7 @@ func GetconfigPath() string {
 
 func GetViperConfig() error {
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GetconfigPath())
+	viper.AddConfigPath(GetConfigPath())
 	viper.SetConfigName("app")
 
 	err := viper.ReadInConfig()

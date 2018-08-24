@@ -3,38 +3,45 @@ package Reorg
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/go-errors/errors"
 	"github.com/romanornr/cyberchain/database"
+	"fmt"
 )
 
 var db = database.GetDatabaseInstance()
 
-func ComparePreviousHash(newBlock *btcjson.GetBlockVerboseResult) error {
+func Check(newBlock *btcjson.GetBlockVerboseResult) error {
 
-	_, lastBlockInDatabase := database.GetLastBlock(database.GetDatabaseInstance())
 	var lastBlock *btcjson.GetBlockVerboseResult
+	_, lastBlockInDatabase := database.GetLastBlock(database.GetDatabaseInstance())
 	decoder := gob.NewDecoder(bytes.NewReader(lastBlockInDatabase))
 	decoder.Decode(&lastBlock)
 
-	//last block is block from database.
-	//if newBlock.Hash == lastBlock.Hash {
-	//	return nil
-	//}
-
-	if newBlock.PreviousHash != lastBlock.Hash {
-		fmt.Println("r")
-		return errors.Errorf("reorg detected ! last block in DB: %s new block prev hash: %s", lastBlock.NextHash, newBlock.PreviousHash)
+	if lastBlock.Height == newBlock.Height {
+		if lastBlock.Hash != newBlock.Hash {
+			return errors.Errorf("reorg detected ! last block in DB %d %s\n new : block %d %s", lastBlock.Height, lastBlock.Hash, newBlock.Height, newBlock.Hash)
+		}
+		return nil
 	}
 
-	if lastBlock.NextHash != newBlock.Hash {
-		fmt.Println("r")
-		return errors.New("reorg detected !\n")
+	duplicateBlockHeight := database.FetchBlockHashByBlockHeight(newBlock.Height)
+
+	if duplicateBlockHeight != nil {
+		fmt.Println(newBlock.Hash)
+
+		var oldBlock *btcjson.GetBlockVerboseResult
+		decoder = gob.NewDecoder(bytes.NewReader(database.ViewBlock(string(duplicateBlockHeight))))
+		decoder.Decode(&oldBlock)
+
+		if oldBlock.Hash != newBlock.Hash{
+			return errors.Errorf("reorg detected ! Block in DB %d %s\n new : block %d %s", oldBlock.Height, oldBlock.Hash, newBlock.Height, newBlock.Hash)
+		}
 	}
+
+
 	return nil
 
-	//fmt.Println(lastBlock.NextHash)
 	//h1 := "ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf6f23f3d9"
 	//h2 := "e8957dac3477849c431dce6929e45ca829598bf45f05f776742f04f06c246ae7"
 	//a, _ := chainhash.NewHashFromStr(h1)

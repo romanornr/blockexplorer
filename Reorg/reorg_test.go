@@ -5,6 +5,7 @@ import (
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"testing"
+	"github.com/btcsuite/btcd/btcjson"
 )
 
 func BuildMockDatabase() {
@@ -12,6 +13,7 @@ func BuildMockDatabase() {
 		blockhash := blockdata.GetBlockHash(i)
 		block, _ := blockdata.GetBlock(blockhash)
 		database.AddBlock(db, blockhash.String(), block)
+		database.AddIndexBlockHeightWithBlockHash(db, blockhash.String(), block.Height)
 	}
 }
 
@@ -22,6 +24,14 @@ var hashes = [7]string{"ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf
 	"d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6", //5
 	"e8957dac3477849c431dce6929e45ca829598bf45f05f776742f04f06c246ae7",
 	"5ca78b039ccfec56373a4392c043bb9a6c77f8c2934af96b036c00dd2e4a0cfa",
+}
+
+// this block has a blockheight:2 but this blockheight is already in the database
+// It has a different hash compared to the block in the database with blockheight:2
+// This would be a potential chain reorg
+var reorgBlock = &btcjson.GetBlockVerboseResult{
+	Hash: "5ca78b039ccfec56373a4392c043bb9a6c77f8c2934af96b036c00dd2e4a0cfa",
+	Height: 2,
 }
 
 func TestComparePreviousHash(t *testing.T) {
@@ -39,16 +49,16 @@ func TestComparePreviousHash(t *testing.T) {
 		t.Errorf("Could not get block: %s via RPC", hashes[5])
 	}
 
-	err = ComparePreviousHash(block)
+	err = Check(block)
 
 	if err != nil {
 		t.Errorf("Did not expect reorg: %s", err)
 	}
 
 	//check if it detects a chain reorg
-	blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
-	block, _ = blockdata.GetBlock(blockhash)
-	err = ComparePreviousHash(block)
+	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
+	//block, _ = blockdata.GetBlock(blockhash)
+	err = Check(reorgBlock)
 
 	if err == nil {
 		t.Errorf("No chain reorg detected, however it was exected %s", err)

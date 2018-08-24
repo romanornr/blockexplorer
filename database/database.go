@@ -135,6 +135,23 @@ func AddIndexBlockHeightWithBlockHash(db *bolt.DB, blockHash string, blockHeight
 	})
 }
 
+func FetchBlockHashByBlockHeight(blockheight int64) []byte {
+	var hash []byte
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Blockheight"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+
+		bs := make([]byte, 8)
+		binary.BigEndian.PutUint64(bs, uint64(blockheight))
+
+		hash = bucket.Get([]byte(bs))
+		return nil
+	})
+	return hash
+}
+
 // link in botldb database the transaction with the right blockhash
 func AddTransaction(db *bolt.DB, TransactionHash []string) error {
 	return db.Update(func(tx *bolt.Tx) error {
@@ -190,20 +207,4 @@ func FetchTransactionHashByBlockhash(blockHash string) []byte {
 	return block
 }
 
-func FetchBlockHashByBlockHeight(blockheight int64) []byte {
-	var hash []byte
-	db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte("Blockheight"))
-		if bucket == nil {
-			return errBucketNotFound
-		}
 
-		bs := make([]byte, 8)
-		binary.BigEndian.PutUint64(bs, uint64(blockheight))
-
-		hash = bucket.Get([]byte(bs))
-		return nil
-	})
-	fmt.Println(hash)
-	return hash
-}

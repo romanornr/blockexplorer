@@ -58,9 +58,26 @@ func TestComparePreviousHash(t *testing.T) {
 	//check if it detects a chain reorg
 	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
 	//block, _ = blockdata.GetBlock(blockhash)
-	err = Check(reorgBlock)
+	err = Check(
+		reorgBlock)
 
 	if err == nil {
 		t.Errorf("No chain reorg detected, however it was exected %s", err)
 	}
+}
+
+
+func TestNewDefaultSubject(t *testing.T) {
+	var game = NewGame()
+	var p1 = NewPlayer("Alex", game)
+	var p2 = NewPlayer("Tim", game)
+
+	game.Attach(p1)
+	game.Attach(p2)
+
+	st := NewGameState("Game started")
+	game.SetState(st)
+
+	st2 := NewGameState("Tim's move")
+	p2.game.SetState(st2)
 }

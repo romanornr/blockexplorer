@@ -7,9 +7,93 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/romanornr/cyberchain/database"
 	"fmt"
+	"container/list"
 )
 
 var db = database.GetDatabaseInstance()
+
+type Observer interface {
+	Update()
+}
+
+type Subject interface {
+	Attach (observer Observer)
+	Detach (observer Observer)
+	Notify()
+}
+
+type DefaultSubject struct {
+	observer *list.List
+}
+
+func NewDefaultSubject() *DefaultSubject {
+	return &DefaultSubject{observer:new(list.List)}
+}
+
+func (this *DefaultSubject) Attach(observer Observer) {
+	this.observer.PushBack(observer)
+}
+
+func (this *DefaultSubject) Detach(observer Observer) {
+	for obs := this.observer.Front(); obs != nil; obs = obs.Next() {
+		if obs.Value.(Observer) == observer {
+			this.observer.Remove(obs)
+		}
+	}
+}
+
+func (this *DefaultSubject) Notify() {
+	for obs := this.observer.Front(); obs != nil; obs = obs.Next() {
+		observer := obs.Value.(Observer)
+		observer.Update()
+	}
+}
+
+//
+type GameState string
+
+func NewGameState(state string) *GameState {
+	gs := GameState(state)
+	return &gs
+}
+
+type Game struct {
+	*DefaultSubject
+	state *GameState
+}
+
+func NewGame() *Game {
+	return &Game{DefaultSubject:NewDefaultSubject()}
+}
+
+func (this *Game) GetState() *GameState {
+	return this.state
+}
+
+func (this *Game) SetState(state *GameState) {
+	this.state = state
+	this.Notify()
+}
+
+type Player struct {
+	name         string
+	lastState *GameState
+	game         *Game
+}
+
+func NewPlayer(name string, game *Game) *Player {
+	this := new(Player)
+	this.name = name
+	this.game = game
+	return this
+}
+
+func (this *Player) Update() {
+	this.lastState = this.game.GetState()
+	fmt.Println(this.name, "noticed that game state has changed to: ", *this.lastState)
+}
+//
+
 
 func Check(newBlock *btcjson.GetBlockVerboseResult) error {
 

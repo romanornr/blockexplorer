@@ -96,4 +96,7 @@ func TestNewDefaultSubject(t *testing.T) {
 	//}
 
 	fmt.Println(string(*chain.GetState()))
+
+	//database.RollBackChainByBlockHeight(3)
+	//database.RollBackChainByBlockHash("7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2")
 }

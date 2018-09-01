@@ -102,12 +102,12 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) error {
 	decoder := gob.NewDecoder(bytes.NewReader(lastBlockInDatabase))
 	decoder.Decode(&lastBlock)
 
-	if lastBlock.Height == newBlock.Height {
-		if lastBlock.Hash != newBlock.Hash {
-			return errors.Errorf("reorg detected ! last block in DB %d %s\n new : block %d %s", lastBlock.Height, lastBlock.Hash, newBlock.Height, newBlock.Hash)
-		}
-		return nil
-	}
+	//if lastBlock.Height == newBlock.Height {
+	//	if lastBlock.Hash != newBlock.Hash {
+	//		return errors.Errorf("reorg detected ! last block in DB %d %s\n new : block %d %s", lastBlock.Height, lastBlock.Hash, newBlock.Height, newBlock.Hash)
+	//	}
+	//	return nil
+	//}
 
 	duplicateBlockHeight := database.FetchBlockHashByBlockHeight(newBlock.Height)
 

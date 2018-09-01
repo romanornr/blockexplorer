@@ -152,6 +152,58 @@ func FetchBlockHashByBlockHeight(blockheight int64) []byte {
 	return hash
 }
 
+func RollBackChainByBlockHeight(blockheight int64) error {
+	db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Blockheight"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+
+		bs := make([]byte, 8)
+		binary.BigEndian.PutUint64(bs, uint64(blockheight))
+
+		c := bucket.Cursor()
+
+		for k, _ := c.Seek(bs); k != nil; k, _ = c.Next() {
+			bucket.Delete(k)
+		}
+
+		//c = bucket.Cursor()
+		//
+		//for k, v := c.First(); k != nil; k, v = c.Next() {
+		//	fmt.Printf("key=%d, value=%s\n", k, v)
+		//}
+
+		return nil
+	})
+	return nil
+}
+
+func RollBackChainByBlockHash(blockhash string) error {
+	db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Blocks"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+
+
+		c := bucket.Cursor()
+
+		for k, _ := c.Seek([]byte(blockhash)); k != nil; k, _ = c.Next() {
+			bucket.Delete(k)
+		}
+
+		c = bucket.Cursor()
+
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			fmt.Printf("key=%s\n", k)
+		}
+
+		return nil
+	})
+	return nil
+}
+
 // link in botldb database the transaction with the right blockhash
 func AddTransaction(db *bolt.DB, TransactionHash []string) error {
 	return db.Update(func(tx *bolt.Tx) error {

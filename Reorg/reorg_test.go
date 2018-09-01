@@ -6,6 +6,7 @@ import (
 	"github.com/romanornr/cyberchain/database"
 	"testing"
 	"github.com/btcsuite/btcd/btcjson"
+	"fmt"
 )
 
 func BuildMockDatabase() {
@@ -68,16 +69,31 @@ func TestComparePreviousHash(t *testing.T) {
 
 
 func TestNewDefaultSubject(t *testing.T) {
-	var game = NewGame()
-	var p1 = NewPlayer("Alex", game)
-	var p2 = NewPlayer("Tim", game)
+	var chain = NewChain()
+	var p1 = NewMonitor("blockMonitor", chain)
+	var p2 = NewMonitor("reorgMonitor", chain)
 
-	game.Attach(p1)
-	game.Attach(p2)
+	chain.Attach(p1)
+	chain.Attach(p2)
 
-	st := NewGameState("Game started")
-	game.SetState(st)
+	//st := NewChainState("New block found")
+	//game.SetState(st)
 
-	st2 := NewGameState("Tim's move")
-	p2.game.SetState(st2)
+	//st2 := NewChainState("Invalid block")
+	//p2.chain.SetState(st2)
+
+	st := NewChainState("New block found")
+	chain.SetState(st)
+
+	//if *chain.GetState() == "New block found" {
+	//	hash := blockdata.GetBlockHash(blockdata.GetBlockCount())
+	//	block, _ := blockdata.GetBlock(hash)
+	//	err := Check(block)
+	//
+	//	if err != nil {
+	//		p2.chain.SetState(NewChainState("Reorg detected"))
+	//	}
+	//}
+
+	fmt.Println(string(*chain.GetState()))
 }

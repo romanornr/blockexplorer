@@ -50,47 +50,47 @@ func (this *DefaultSubject) Notify() {
 }
 
 //
-type GameState string
+type ChainState string
 
-func NewGameState(state string) *GameState {
-	gs := GameState(state)
-	return &gs
+func NewChainState(state string) *ChainState {
+	cs := ChainState(state)
+	return &cs
 }
 
-type Game struct {
+type Chain struct {
 	*DefaultSubject
-	state *GameState
+	state *ChainState
 }
 
-func NewGame() *Game {
-	return &Game{DefaultSubject:NewDefaultSubject()}
+func NewChain() *Chain {
+	return &Chain{DefaultSubject:NewDefaultSubject()}
 }
 
-func (this *Game) GetState() *GameState {
+func (this *Chain) GetState() *ChainState {
 	return this.state
 }
 
-func (this *Game) SetState(state *GameState) {
+func (this *Chain) SetState(state *ChainState) {
 	this.state = state
 	this.Notify()
 }
 
-type Player struct {
+type Monitor struct {
 	name         string
-	lastState *GameState
-	game         *Game
+	lastState *ChainState
+	chain         *Chain
 }
 
-func NewPlayer(name string, game *Game) *Player {
-	this := new(Player)
+func NewMonitor(name string, chain *Chain) *Monitor {
+	this := new(Monitor)
 	this.name = name
-	this.game = game
+	this.chain = chain
 	return this
 }
 
-func (this *Player) Update() {
-	this.lastState = this.game.GetState()
-	fmt.Println(this.name, "noticed that game state has changed to: ", *this.lastState)
+func (this *Monitor) Update() {
+	this.lastState = this.chain.GetState()
+	fmt.Println(this.name, "\tnoticed that the chain state has changed to: ", *this.lastState)
 }
 //
 

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"github.com/btcsuite/btcd/btcjson"
 	"fmt"
+	"encoding/binary"
 )
 
 func BuildMockDatabase() {
@@ -18,7 +19,7 @@ func BuildMockDatabase() {
 	}
 }
 
-var hashes = [7]string{"ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf6f23f3d9",
+var hashes = [7]string{"5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3",
 	"45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc",
 	"7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2",
 	"a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f",
@@ -31,8 +32,8 @@ var hashes = [7]string{"ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf
 // It has a different hash compared to the block in the database with blockheight:2
 // This would be a potential chain reorg
 var reorgBlock = &btcjson.GetBlockVerboseResult{
-	Hash: "5ca78b039ccfec56373a4392c043bb9a6c77f8c2934af96b036c00dd2e4a0cfa",
-	Height: 2,
+	Hash: "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6",
+	Height: 4,
 }
 
 func TestComparePreviousHash(t *testing.T) {
@@ -50,7 +51,7 @@ func TestComparePreviousHash(t *testing.T) {
 		t.Errorf("Could not get block: %s via RPC", hashes[5])
 	}
 
-	err = Check(block)
+	_, err = Check(block)
 
 	if err != nil {
 		t.Errorf("Did not expect reorg: %s", err)
@@ -59,14 +60,12 @@ func TestComparePreviousHash(t *testing.T) {
 	//check if it detects a chain reorg
 	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
 	//block, _ = blockdata.GetBlock(blockhash)
-	err = Check(
-		reorgBlock)
+	_, err = Check(reorgBlock)
 
 	if err == nil {
 		t.Errorf("No chain reorg detected, however it was exected %s", err)
 	}
 }
-
 
 func TestNewDefaultSubject(t *testing.T) {
 	var chain = NewChain()
@@ -96,7 +95,18 @@ func TestNewDefaultSubject(t *testing.T) {
 	//}
 
 	fmt.Println(string(*chain.GetState()))
+}
 
-	//database.RollBackChainByBlockHeight(3)
-	//database.RollBackChainByBlockHash("7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2")
+func TestRollbackChain(t *testing.T) {
+	block, err := Check(reorgBlock)
+	if err != nil {
+		RollbackChain(block)
+	}
+
+	key, _ := database.GetLastBlockHeight(db)
+	lastBlockheightInDatabase := binary.BigEndian.Uint64(key)
+	if lastBlockheightInDatabase != 3 {
+		t.Errorf("Last blockheight in database expected: %d actual %d", 3, lastBlockheightInDatabase)
+	}
+
 }

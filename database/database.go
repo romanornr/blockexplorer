@@ -71,7 +71,7 @@ func SetupDB() (*bolt.DB, error) {
 	})
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err = tx.CreateBucketIfNotExists([]byte("BlockHeight"))
+		_, err = tx.CreateBucketIfNotExists([]byte("Blockheight"))
 		if err != nil {
 			return fmt.Errorf("could not create blockheight bucket: %v", err)
 		}
@@ -113,6 +113,18 @@ func GetLastBlock(db *bolt.DB) ([]byte, []byte) {
 	var key, value []byte
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Blocks"))
+		c := b.Cursor()
+
+		key, value = c.Last()
+		return nil
+	})
+	return key, value
+}
+
+func GetLastBlockHeight(db *bolt.DB) ([]byte, []byte) {
+	var key, value []byte
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Blockheight"))
 		c := b.Cursor()
 
 		key, value = c.Last()
@@ -193,11 +205,11 @@ func RollBackChainByBlockHash(blockhash string) error {
 			bucket.Delete(k)
 		}
 
-		c = bucket.Cursor()
-
-		for k, _ := c.First(); k != nil; k, _ = c.Next() {
-			fmt.Printf("key=%s\n", k)
-		}
+		//c = bucket.Cursor()
+		//
+		//for k, _ := c.First(); k != nil; k, _ = c.Next() {
+		//	fmt.Printf("key=%s\n", k)
+		//}
 
 		return nil
 	})

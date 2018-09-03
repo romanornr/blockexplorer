@@ -95,7 +95,7 @@ func (this *Monitor) Update() {
 //
 
 
-func Check(newBlock *btcjson.GetBlockVerboseResult) error {
+func Check(newBlock *btcjson.GetBlockVerboseResult) (*btcjson.GetBlockVerboseResult, error) {
 
 	var lastBlock *btcjson.GetBlockVerboseResult
 	_, lastBlockInDatabase := database.GetLastBlock(database.GetDatabaseInstance())
@@ -111,28 +111,23 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) error {
 
 	duplicateBlockHeight := database.FetchBlockHashByBlockHeight(newBlock.Height)
 
+	var oldBlock *btcjson.GetBlockVerboseResult
 	if duplicateBlockHeight != nil {
-		fmt.Println(newBlock.Hash)
 
-		var oldBlock *btcjson.GetBlockVerboseResult
 		decoder = gob.NewDecoder(bytes.NewReader(database.ViewBlock(string(duplicateBlockHeight))))
 		decoder.Decode(&oldBlock)
 
 		if oldBlock.Hash != newBlock.Hash{
-			return errors.Errorf("reorg detected ! Block in DB %d %s\n new : block %d %s", oldBlock.Height, oldBlock.Hash, newBlock.Height, newBlock.Hash)
+			return oldBlock, errors.Errorf("reorg detected ! Block in DB %d %s\n new : block %d %s", oldBlock.Height, oldBlock.Hash, newBlock.Height, newBlock.Hash)
 		}
 	}
 
+	return oldBlock, nil
+}
 
-	return nil
-
-	//h1 := "ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf6f23f3d9"
-	//h2 := "e8957dac3477849c431dce6929e45ca829598bf45f05f776742f04f06c246ae7"
-	//a, _ := chainhash.NewHashFromStr(h1)
-	//b, _ := chainhash.NewHashFromStr(h2)
-	//
-	//fmt.Print(GetCommonBlockAncestorHeight(b, a))
-
+func RollbackChain(block *btcjson.GetBlockVerboseResult) {
+	database.RollBackChainByBlockHash(block.Hash)
+	database.RollBackChainByBlockHeight(block.Height)
 }
 
 //// GetCommonBlockAncestorHeight takes in:
@@ -140,6 +135,14 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) error {
 //// (2) the hash of the block of the same height from the main chain
 //// It returns the height of the nearest common ancestor between the two hashes,
 //// or an error
+
+//h1 := "ded7508b6b6452bfc99961366e3206a7a258cf897d3148b46e590bbf6f23f3d9"
+//h2 := "e8957dac3477849c431dce6929e45ca829598bf45f05f776742f04f06c246ae7"
+//a, _ := chainhash.NewHashFromStr(h1)
+//b, _ := chainhash.NewHashFromStr(h2)
+//
+//fmt.Print(GetCommonBlockAncestorHeight(b, a))
+
 //func GetCommonBlockAncestorHeight(reorgHash, chainHash *chainhash.Hash) (int32, error) {
 //	fmt.Print(chainHash)
 //

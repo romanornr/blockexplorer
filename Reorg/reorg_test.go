@@ -7,7 +7,6 @@ import (
 	"testing"
 	"github.com/btcsuite/btcd/btcjson"
 	"fmt"
-	"encoding/binary"
 )
 
 func BuildMockDatabase() {
@@ -103,10 +102,21 @@ func TestRollbackChain(t *testing.T) {
 		RollbackChain(block)
 	}
 
-	key, _ := database.GetLastBlockHeight(db)
-	lastBlockheightInDatabase := binary.BigEndian.Uint64(key)
+	lastBlockheightInDatabase, _ := database.GetLastBlockHeight(db)
 	if lastBlockheightInDatabase != 3 {
 		t.Errorf("Last blockheight in database expected: %d actual %d", 3, lastBlockheightInDatabase)
 	}
+}
 
+func TestRepairChain(t *testing.T) {
+	RepairChain(true)
+	lastBlockHeightInDatabase, lastBlockHashInDatabase := database.GetLastBlockHeight(db)
+
+	if lastBlockHeightInDatabase != 10 {
+		t.Errorf("Repaired chain. Last block in Database: expected %d actual %d", 10, lastBlockHeightInDatabase)
+	}
+
+	if string(lastBlockHashInDatabase) != "ce8404d785241d9dfc89a3b895c3126c9cf8af6e37066490a9a5271fcabc024d" {
+		t.Errorf("Repaired chain. Last blockheight in Database: %d Expected hash %s actual %s", lastBlockHashInDatabase, "ce8404d785241d9dfc89a3b895c3126c9cf8af6e37066490a9a5271fcabc024d", lastBlockHashInDatabase)
+	}
 }

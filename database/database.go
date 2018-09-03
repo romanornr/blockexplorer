@@ -121,7 +121,7 @@ func GetLastBlock(db *bolt.DB) ([]byte, []byte) {
 	return key, value
 }
 
-func GetLastBlockHeight(db *bolt.DB) ([]byte, []byte) {
+func GetLastBlockHeight(db *bolt.DB) (uint64, []byte) {
 	var key, value []byte
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Blockheight"))
@@ -130,7 +130,7 @@ func GetLastBlockHeight(db *bolt.DB) ([]byte, []byte) {
 		key, value = c.Last()
 		return nil
 	})
-	return key, value
+	return binary.BigEndian.Uint64(key), value
 }
 
 // link in the boltdb database the blockheight with the right blockhash.

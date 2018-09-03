@@ -8,6 +8,7 @@ import (
 	"github.com/romanornr/cyberchain/database"
 	"fmt"
 	"container/list"
+	"github.com/romanornr/cyberchain/blockdata"
 )
 
 var db = database.GetDatabaseInstance()
@@ -128,6 +129,24 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) (*btcjson.GetBlockVerboseRes
 func RollbackChain(block *btcjson.GetBlockVerboseResult) {
 	database.RollBackChainByBlockHash(block.Hash)
 	database.RollBackChainByBlockHeight(block.Height)
+}
+
+func RepairChain(testing bool) {
+	lastHeight, _ := database.GetLastBlockHeight(db)
+	var blockcount int64
+	blockcount = blockdata.GetBlockCount()
+
+	//testing to true only for go test, otherwise it would have to get the whole chain into the database
+	if testing == true {
+		blockcount = 10
+	}
+
+	for i := int64(lastHeight); i < blockcount+1; i++ {
+		blockhash := blockdata.GetBlockHash(i)
+		block, _ := blockdata.GetBlock(blockhash)
+		database.AddBlock(db, blockhash.String(), block)
+		database.AddIndexBlockHeightWithBlockHash(db, blockhash.String(), block.Height)
+	}
 }
 
 //// GetCommonBlockAncestorHeight takes in:

@@ -52,7 +52,6 @@ func (b *BlockListProxy) FindBlock(hash *chainhash.Hash) (*btcjson.GetBlockVerbo
 	decoder.Decode(&blockjson)
 
 	return blockjson, nil
-
 }
 
 func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
@@ -68,10 +67,10 @@ func (b *BlockList) FindBlockInDatabase(hash string) []byte {
 	return database.ViewBlock(db, hash)
 }
 
+// add block to the database and index blockheight with the hash
 func (b *BlockListProxy) AddBlockToDatabase(block *btcjson.GetBlockVerboseResult) {
-	//b.Database.addBlock(block)
-	//can do something like b.database.addTransaction(block)
 	database.AddBlock(db, block.Hash, block)
+	database.AddIndexBlockHeightWithBlockHash(db, block.Hash, block.Height)
 }
 
 //func (b *BlockList) addBlock(block *btcjson.GetBlockVerboseResult) {

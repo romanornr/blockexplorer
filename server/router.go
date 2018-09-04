@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/romanornr/cyberchain/database"
 	"github.com/spf13/viper"
-	"github.com/viacoin/viad/btcjson"
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/romanornr/cyberchain/blockdata"
 )
 
 // createRouter creates and returns a router.
@@ -45,38 +45,30 @@ func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 }
 
 func getDifficulty(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	difficulty, err := client().GetDifficulty()
+	difficulty, err := blockdata.GetDifficulty()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Could not get difficulty", err)
 	}
 	json.NewEncoder(w).Encode(difficulty)
 }
 
 // getLatestBlocks gets x (int) latest blocks
 func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	blockCount, err := client().GetBlockCount() // get the latest blocks
-	if err != nil {
-		log.Println(err)
-	}
+	blockCount := blockdata.GetBlockCount() // get the latest blocks
 
 	var blocks []*btcjson.GetBlockVerboseResult
 
 	// blockheight - 1 in the loop. Get the blockhash from the height
-	// 10? why 10?
 	for i := 0; i < 10; i++ {
 		prevBlock := blockCount - int64(i)
-		hash, err := client().GetBlockHash(prevBlock)
-		if err != nil {
-			log.Println(err)
-		}
+		hash := blockdata.GetBlockHash(prevBlock)
 
-		block, err := client().GetBlockVerbose(hash)
+		block, err := blockdata.GetBlock(hash)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		blocks = append(blocks, block)
-
 	}
 	json.NewEncoder(w).Encode(blocks)
 }
@@ -90,24 +82,4 @@ func getBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	decoder.Decode(&block)
 
 	json.NewEncoder(w).Encode(&block)
-
-	// x := database.ViewBlock("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
-	//
-	// var block *btcjson.GetBlockVerboseResult
-	// decoder := gob.NewDecoder(bytes.NewReader(x))
-	// decoder.Decode(&block)
-	// x := database.FetchTransactionHashByBlockhash("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
-
-	// var block *btcjson.TxRawResult
-	// decoder := gob.NewDecoder(bytes.NewReader(x))
-	// decoder.Decode(&block)
-	//
-
-	// var block *btcjson.TxRawDecodeResult
-	// //fmt.Println(btcjson.DecodeRawTransactionCmd{x})
-	// decoder := gob.NewDecoder(bytes.NewReader(x))
-	// decoder.Decode(&block)
-
-	// json.NewEncoder(w).Encode(string(x))
-	// fmt.Println(btcjson.NewDecodeRawTransactionCmd(string(x)))
 }

@@ -11,15 +11,6 @@ import (
 
 var rpclient = client.GetInstance()
 
-// get current difficulty of a block
-func GetDifficulty() float64 {
-	difficulty, err := rpclient.GetDifficulty()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return difficulty
-}
-
 func GetBlockCount() int64 {
 	c, err := rpclient.GetBlockCount()
 	if err != nil {
@@ -122,4 +113,10 @@ func DecodeRawTransaction(transactionHash []byte) *btcjson.TxRawResult {
 		log.Println(err)
 	}
 	return decodedRawTransaction
+}
+
+// get current difficulty of a block
+func GetDifficulty() (float64, error) {
+	difficulty, err := rpclient.GetDifficulty()
+	return difficulty, err
 }

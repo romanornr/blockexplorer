@@ -34,8 +34,8 @@ func BuildDatabaseBlocks() {
 	//	}
 
 
-	progressBar := pb.StartNew(200)
-	for i := int64(1); i < 200; i++ {
+	progressBar := pb.StartNew(1000)
+	for i := int64(1); i < 1000; i++ {
 		//blockhash := blockdata.GetBlockHash(i) ==>
 		//fmt.Println(blockdata.GetBlockHash(i))
 		blockhash := blockdata.GetBlockHash(i)
@@ -52,4 +52,5 @@ func BuildDatabaseBlocks() {
 
 	}
 	progressBar.Finish()
+
 }

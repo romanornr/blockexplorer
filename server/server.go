@@ -2,37 +2,14 @@ package server
 
 import (
 	"flag"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-
 	"github.com/spf13/viper"
-	"github.com/viacoin/viad/rpcclient"
+	"fmt"
 )
 
 var tpl *template.Template
-
-func client() *rpcclient.Client {
-	// Connect to local bitcoin/altcoin core RPC server using HTTP POST mode.
-	connCfg := &rpcclient.ConnConfig{
-		Host:         viper.GetString("rpc.ip") + ":" + viper.GetString("rpc.port"), // 127.0.0.1:8332
-		User:         viper.GetString("rpc.username"),
-		Pass:         viper.GetString("rpc.password"),
-		HTTPPostMode: true, // Viacoin core only supports HTTP POST mode
-		DisableTLS:   true, // Viacoin core does not provide TLS by default
-	}
-
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
-	client, err := rpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
-		client.Shutdown()
-	}
-
-	return client
-}
 
 func init() {
 	tpl = template.Must(template.ParseGlob("website/*"))

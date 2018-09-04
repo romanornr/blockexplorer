@@ -11,8 +11,7 @@ import (
 	"github.com/romanornr/cyberchain/database"
 	"strconv"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"encoding/gob"
-	"bytes"
+	"github.com/romanornr/cyberchain/Blockchain"
 )
 
 var db = database.GetDatabaseInstance()
@@ -82,15 +81,15 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
 	hash, err := chainhash.NewHashFromStr(ps.ByName("hash"))
 	if err != nil {
-		log.Println(err)
+		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	blockInDatabase := database.ViewBlock(db, hash.String())
+	proxy := Blockchain.BlockListProxy{}
 
-	var block *btcjson.GetBlockVerboseResult
-
-	decoder := gob.NewDecoder(bytes.NewReader(blockInDatabase))
-	decoder.Decode(&block)
+	block, err := proxy.FindBlock(hash)
+	if err != nil {
+		log.Printf("error finding block: %s", err)
+	}
 
 	block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
 

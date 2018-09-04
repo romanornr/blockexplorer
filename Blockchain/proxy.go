@@ -65,7 +65,7 @@ func (b *BlockList) FindBlockByRPC(hash *chainhash.Hash) (*btcjson.GetBlockVerbo
 
 // find the block in the database by giving the blockhash
 func (b *BlockList) FindBlockInDatabase(hash string) []byte {
-	return database.ViewBlock(hash)
+	return database.ViewBlock(db, hash)
 }
 
 func (b *BlockListProxy) AddBlockToDatabase(block *btcjson.GetBlockVerboseResult) {

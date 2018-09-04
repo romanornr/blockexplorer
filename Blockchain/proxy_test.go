@@ -95,7 +95,7 @@ func TestAddBlockToDatabase(t *testing.T) {
 
 	//proxy.Database.addBlock(block)
 	proxy.AddBlockToDatabase(block)
-	blockInDatabase := database.ViewBlock(hash)
+	blockInDatabase := database.ViewBlock(db, hash)
 	if blockInDatabase == nil {
 		t.Errorf("Added block in Database but somehow not found after adding with hash: %s\n", hash)
 	}

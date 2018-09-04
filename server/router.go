@@ -108,19 +108,16 @@ func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64{
 	return *q
 }
 
-type blockIndex struct {
-	BlockHash string `json:"blockHash"`
-}
-
 func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
 	height := ps.ByName("height")
-	i64, err := strconv.ParseUint(height, 10, 64)
+	blockheight, err := strconv.ParseUint(height, 10, 64)
 	if err != nil {
 		log.Println("could not convert height to int64")
 	}
 
-	hash := string(database.FetchBlockHashByBlockHeight(int64(i64)))
+	proxy := Blockchain.BlockListProxy{}
+	blockIndex := proxy.FindBlockHash(int64(blockheight))
 
-	json.NewEncoder(w).Encode(blockIndex{hash})
+	json.NewEncoder(w).Encode(blockIndex)
 }

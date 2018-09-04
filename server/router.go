@@ -10,8 +10,12 @@ import (
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"strconv"
-	"fmt"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"encoding/gob"
+	"bytes"
 )
+
+var db = database.GetDatabaseInstance()
 
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
@@ -76,26 +80,33 @@ func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 
 func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
-	//hash, err := chainhash.NewHashFromStr(ps.ByName("hash"))
-	//if err != nil {
-	//	log.Println(err)
-	//}
+	hash, err := chainhash.NewHashFromStr(ps.ByName("hash"))
+	if err != nil {
+		log.Println(err)
+	}
 
-	//x := database.ViewBlock(hash.String())
-	//fmt.Println(x)
-	//var block *btcjson.GetBlockVerboseResult
-	//decoder := gob.NewDecoder(bytes.NewReader(x))
-	//decoder.Decode(&block)
-	//
-	//json.NewEncoder(w).Encode(&block)
+	x := database.ViewBlock(db, hash.String())
+
+	var block *btcjson.GetBlockVerboseResult
+	decoder := gob.NewDecoder(bytes.NewReader(x))
+	decoder.Decode(&block)
+
+	json.NewEncoder(w).Encode(&block)
+}
+
+type blockIndex struct {
+	BlockHash string `json:"blockHash"`
 }
 
 func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+
 	height := ps.ByName("height")
 	i64, err := strconv.ParseUint(height, 10, 64)
 	if err != nil {
 		log.Println("could not convert height to int64")
 	}
-	result := database.FetchBlockHashByBlockHeight(int64(i64))
-	fmt.Println(result)
+
+	hash := string(database.FetchBlockHashByBlockHeight(int64(i64)))
+
+	json.NewEncoder(w).Encode(blockIndex{hash})
 }

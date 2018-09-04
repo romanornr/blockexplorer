@@ -243,7 +243,7 @@ func AddTransaction(db *bolt.DB, TransactionHash []string) error {
 // Maybe it should be a Block struct, so the func will return
 // (*btcjson.GetBlockVerboseResult, err) or
 // (*btcjson.GetBlockVerboseResult, bool), where bool is existence of the block.
-func ViewBlock(blockHash string) []byte {
+func ViewBlock(db *bolt.DB, blockHash string) []byte {
 	var block []byte
 	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("Blocks"))

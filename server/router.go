@@ -1,16 +1,16 @@
 package server
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"log"
 	"net/http"
 	"github.com/julienschmidt/httprouter"
-	"github.com/romanornr/cyberchain/database"
 	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
+	"strconv"
+	"fmt"
 )
 
 // createRouter creates and returns a router.
@@ -21,7 +21,8 @@ func createRouter() *httprouter.Router {
 	router.GET("/", index)
 	router.GET("/api/"+network+"/getdifficulty", getDifficulty)
 	router.GET("/api/"+network+"/blocks", getLatestBlocks)
-	router.GET("/api/"+network+"/block", getBlock)
+	router.GET("/api/"+network+"/block/:hash", getBlock)
+	router.GET("/api/"+network+"/block-index/:height", getBlockIndex)
 
 	fileServer := http.FileServer(http.Dir("static"))
 
@@ -73,13 +74,28 @@ func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 	json.NewEncoder(w).Encode(blocks)
 }
 
-func getBlock(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
-	x := database.ViewBlock("c65aabe1578da37945118ff6078792315499dd0dd6712f76a5f387126799d9b1")
+	//hash, err := chainhash.NewHashFromStr(ps.ByName("hash"))
+	//if err != nil {
+	//	log.Println(err)
+	//}
 
-	var block *btcjson.GetBlockVerboseResult
-	decoder := gob.NewDecoder(bytes.NewReader(x))
-	decoder.Decode(&block)
+	//x := database.ViewBlock(hash.String())
+	//fmt.Println(x)
+	//var block *btcjson.GetBlockVerboseResult
+	//decoder := gob.NewDecoder(bytes.NewReader(x))
+	//decoder.Decode(&block)
+	//
+	//json.NewEncoder(w).Encode(&block)
+}
 
-	json.NewEncoder(w).Encode(&block)
+func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	height := ps.ByName("height")
+	i64, err := strconv.ParseUint(height, 10, 64)
+	if err != nil {
+		log.Println("could not convert height to int64")
+	}
+	result := database.FetchBlockHashByBlockHeight(int64(i64))
+	fmt.Println(result)
 }

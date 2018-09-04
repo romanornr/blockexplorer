@@ -85,10 +85,10 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Println(err)
 	}
 
-	x := database.ViewBlock(db, hash.String())
+	blockInDatabase := database.ViewBlock(db, hash.String())
 
 	var block *btcjson.GetBlockVerboseResult
-	decoder := gob.NewDecoder(bytes.NewReader(x))
+	decoder := gob.NewDecoder(bytes.NewReader(blockInDatabase))
 	decoder.Decode(&block)
 
 	json.NewEncoder(w).Encode(&block)

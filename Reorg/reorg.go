@@ -115,7 +115,7 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) (*btcjson.GetBlockVerboseRes
 	var oldBlock *btcjson.GetBlockVerboseResult
 	if duplicateBlockHeight != nil {
 
-		decoder = gob.NewDecoder(bytes.NewReader(database.ViewBlock(string(duplicateBlockHeight))))
+		decoder = gob.NewDecoder(bytes.NewReader(database.ViewBlock(db, string(duplicateBlockHeight))))
 		decoder.Decode(&oldBlock)
 
 		if oldBlock.Hash != newBlock.Hash{

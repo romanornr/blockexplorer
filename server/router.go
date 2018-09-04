@@ -88,10 +88,25 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	blockInDatabase := database.ViewBlock(db, hash.String())
 
 	var block *btcjson.GetBlockVerboseResult
+
 	decoder := gob.NewDecoder(bytes.NewReader(blockInDatabase))
 	decoder.Decode(&block)
 
+	block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
+
 	json.NewEncoder(w).Encode(&block)
+}
+
+// confirmations from blocks always change. Block confirmations can be calculated with the following method
+// latest blockheight in database - blockheight
+func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64{
+	currentBlockHeight, _ := database.GetLastBlockHeight(db)
+
+	blockConfirmations := int64(currentBlockHeight) - block.Confirmations
+	var m int64 = blockConfirmations
+	var q = &m
+	block.Confirmations = *q
+	return *q
 }
 
 type blockIndex struct {

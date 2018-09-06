@@ -2,11 +2,11 @@ package server
 
 import (
 	"flag"
+	"fmt"
+	"github.com/spf13/viper"
 	"html/template"
 	"log"
 	"net/http"
-	"github.com/spf13/viper"
-	"fmt"
 )
 
 var tpl *template.Template

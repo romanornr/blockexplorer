@@ -1,12 +1,12 @@
 package Reorg
 
 import (
+	"fmt"
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"testing"
-	"github.com/btcsuite/btcd/btcjson"
-	"fmt"
 )
 
 func BuildMockDatabase() {
@@ -31,7 +31,7 @@ var hashes = [7]string{"5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b
 // It has a different hash compared to the block in the database with blockheight:2
 // This would be a potential chain reorg
 var reorgBlock = &btcjson.GetBlockVerboseResult{
-	Hash: "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6",
+	Hash:   "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6",
 	Height: 4,
 }
 

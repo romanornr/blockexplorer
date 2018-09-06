@@ -10,7 +10,7 @@ import (
 
 var db = database.GetDatabaseInstance()
 
-func BuildDatabaseBlocks() {
+func BuildDatabase() {
 	////database.Open()
 	////database.SetupDB()
 	//

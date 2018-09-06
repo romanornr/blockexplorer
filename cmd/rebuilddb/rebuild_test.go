@@ -2,10 +2,10 @@ package rebuilddb
 
 import "testing"
 
-func TestBuild(t *testing.T) {
-	BuildDatabaseBlocks()
+func TestBuildDatabase(t *testing.T) {
+	BuildDatabase()
 }
 
-func BenchmarkBuildDatabaseBlocks(b *testing.B) {
-	BuildDatabaseBlocks()
+func BenchmarkBuildDatabase(b *testing.B) {
+	BuildDatabase()
 }

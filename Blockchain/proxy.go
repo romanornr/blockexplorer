@@ -17,7 +17,7 @@ type Block struct {
 
 type BlockIndex struct {
 	blockHeight int64
-	BlockHash string `json:"blockHash"`
+	BlockHash   string `json:"blockHash"`
 }
 
 type BlockFinder interface {

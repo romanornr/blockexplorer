@@ -2,16 +2,16 @@ package server
 
 import (
 	"encoding/json"
-	"log"
-	"net/http"
-	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
 	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/julienschmidt/httprouter"
+	"github.com/romanornr/cyberchain/Blockchain"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
+	"github.com/spf13/viper"
+	"log"
+	"net/http"
 	"strconv"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/romanornr/cyberchain/Blockchain"
 )
 
 var db = database.GetDatabaseInstance()
@@ -98,7 +98,7 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
 // confirmations from blocks always change. Block confirmations can be calculated with the following method
 // latest blockheight in database - blockheight
-func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64{
+func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64 {
 	currentBlockHeight, _ := database.GetLastBlockHeight(db)
 
 	blockConfirmations := int64(currentBlockHeight) - block.Confirmations

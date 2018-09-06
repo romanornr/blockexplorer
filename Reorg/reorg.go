@@ -2,13 +2,13 @@ package Reorg
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/gob"
+	"fmt"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/go-errors/errors"
-	"github.com/romanornr/cyberchain/database"
-	"fmt"
-	"container/list"
 	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
 )
 
 var db = database.GetDatabaseInstance()
@@ -18,8 +18,8 @@ type Observer interface {
 }
 
 type Subject interface {
-	Attach (observer Observer)
-	Detach (observer Observer)
+	Attach(observer Observer)
+	Detach(observer Observer)
 	Notify()
 }
 
@@ -28,7 +28,7 @@ type DefaultSubject struct {
 }
 
 func NewDefaultSubject() *DefaultSubject {
-	return &DefaultSubject{observer:new(list.List)}
+	return &DefaultSubject{observer: new(list.List)}
 }
 
 func (this *DefaultSubject) Attach(observer Observer) {
@@ -64,7 +64,7 @@ type Chain struct {
 }
 
 func NewChain() *Chain {
-	return &Chain{DefaultSubject:NewDefaultSubject()}
+	return &Chain{DefaultSubject: NewDefaultSubject()}
 }
 
 func (this *Chain) GetState() *ChainState {
@@ -77,9 +77,9 @@ func (this *Chain) SetState(state *ChainState) {
 }
 
 type Monitor struct {
-	name         string
+	name      string
 	lastState *ChainState
-	chain         *Chain
+	chain     *Chain
 }
 
 func NewMonitor(name string, chain *Chain) *Monitor {
@@ -93,8 +93,8 @@ func (this *Monitor) Update() {
 	this.lastState = this.chain.GetState()
 	fmt.Println(this.name, "\tnoticed that the chain state has changed to: ", *this.lastState)
 }
-//
 
+//
 
 func Check(newBlock *btcjson.GetBlockVerboseResult) (*btcjson.GetBlockVerboseResult, error) {
 
@@ -118,7 +118,7 @@ func Check(newBlock *btcjson.GetBlockVerboseResult) (*btcjson.GetBlockVerboseRes
 		decoder = gob.NewDecoder(bytes.NewReader(database.ViewBlock(db, string(duplicateBlockHeight))))
 		decoder.Decode(&oldBlock)
 
-		if oldBlock.Hash != newBlock.Hash{
+		if oldBlock.Hash != newBlock.Hash {
 			return oldBlock, errors.Errorf("reorg detected ! Block in DB %d %s\n new : block %d %s", oldBlock.Height, oldBlock.Hash, newBlock.Height, newBlock.Hash)
 		}
 	}

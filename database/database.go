@@ -18,6 +18,7 @@ import (
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/client"
 	"github.com/spf13/viper"
+	"github.com/btcsuite/btcutil"
 )
 
 var db *bolt.DB
@@ -216,24 +217,31 @@ func RollBackChainByBlockHash(blockhash string) error {
 	return nil
 }
 
-// link in botldb database the transaction with the right blockhash
-func AddTransaction(db *bolt.DB, TransactionHash []string) error {
+// link in botldb database the transaction
+func AddRawTransaction(db *bolt.DB, TxFromBytes []byte, Tx *btcutil.Tx) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
 		if err != nil {
-			log.Fatalf("Error: Could not save transaction together with the blockhash in the Transaction bucket: %v", err)
+			log.Fatalf("Error: Could not save raw transaction together in the Transaction bucket: %v", err)
 		}
 
-		for _, element := range TransactionHash {
-			txHash, _ := chainhash.NewHashFromStr(element)
-			rawTransaction := blockdata.GetRawTransactionVerbose(txHash)
-			// rawTransaction := blockdata.GetRawTransaction(txHash)
+		b.Put(Tx.Hash().CloneBytes(), TxFromBytes)
+		return nil
+	})
+}
 
-			var result bytes.Buffer
-			encoder := gob.NewEncoder(&result)
-			encoder.Encode(rawTransaction.Hex)
-			b.Put(txHash.CloneBytes(), []byte(rawTransaction.Hex))
+func AddTransaction(db *bolt.DB, Transaction *btcjson.TxRawResult) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
+		if err != nil {
+			log.Fatalf("Error: Could not save transaction in the Transactions bucket: %v", err)
 		}
+
+		var result bytes.Buffer
+		encoder := gob.NewEncoder(&result)
+		encoder.Encode(Transaction)
+
+		b.Put([]byte(Transaction.Hash), []byte(result.Bytes()))
 		return nil
 	})
 }

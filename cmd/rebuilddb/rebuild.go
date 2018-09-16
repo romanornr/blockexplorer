@@ -22,14 +22,14 @@ func BuildDatabase() {
 			log.Fatal("error")
 		}
 
+		//adding transactions to the "Transactions" bucket
+		go addTransactions(block)
+
 		database.AddBlock(db, blockhash.String(), block)                        // bucket:"Blocks"  key:blockhash  value:blockVerboseResult
 		database.AddIndexBlockHeightWithBlockHash(db, block.Hash, block.Height) //bucket:"Blockheight" key:blockheight value:blockhash
 
-		//adding transactions the "Transactions" bucket
-		go addTransactions(block)
-
 		// note: 2000 blocks costs currently 8.4 MB and ~39 seconds to save. Running into performance issues.
-		// go routine "go addTransactions(block) speed up from ~39 seconds to ~33 seconds. 15% speed up
+		// go routine "go addTransactions(block) speed up from ~39 seconds to ~29 seconds. 25% speed up
 
 		progressBar.Increment()
 	}

@@ -6,6 +6,7 @@ import (
 	"gopkg.in/cheggaaa/pb.v2"
 	"log"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcd/btcjson"
 )
 
 var db = database.GetDatabaseInstance()
@@ -25,18 +26,23 @@ func BuildDatabase() {
 		database.AddIndexBlockHeightWithBlockHash(db, block.Hash, block.Height) //bucket:"Blockheight" key:blockheight value:blockhash
 
 		//adding transactions the "Transactions" bucket
-		for j := 0; j < len(block.Tx); j++ {
-			txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
-			tx := blockdata.GetRawTransactionVerbose(txhash)
-			database.AddTransaction(db, tx)
-		}
+		go addTransactions(block)
 
 		// note: 2000 blocks costs currently 8.4 MB and ~39 seconds to save. Running into performance issues.
+		// go routine "go addTransactions(block) speed up from ~39 seconds to ~33 seconds. 15% speed up
+
 		progressBar.Increment()
 	}
 	progressBar.Finish()
 }
 
+func addTransactions(block *btcjson.GetBlockVerboseResult) {
+	for j := 0; j < len(block.Tx); j++ {
+		txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
+		tx := blockdata.GetRawTransactionVerbose(txhash)
+		database.AddTransaction(db, tx)
+	}
+}
 
 // future opt might be using hex instead of TransactionVerbose
 // 2000 blocks takes the same size but 35 seconds instead of 39

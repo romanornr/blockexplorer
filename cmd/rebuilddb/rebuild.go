@@ -41,24 +41,26 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 
 	// adding transactions to the "Transactions" bucket
 	go func() {
+		defer localWG.Done()
 		for j := 0; j < len(block.Tx); j++ {
 			txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
 			tx := blockdata.GetRawTransactionVerbose(txhash)
 			database.AddTransaction(db, tx)
 		}
-		localWG.Done()
 	}()
 
 	go func() {
+		defer localWG.Done()
+
 		// bucket:"Blocks"  key:blockhash  value:blockVerboseResult
 		database.AddBlock(db, blockhash.String(), block)
-		localWG.Done()
 	}()
 
 	go func() {
+		defer localWG.Done()
+
 		// bucket:"Blockheight" key:blockheight value:blockhash
 		database.AddIndexBlockHeightWithBlockHash(db, block.Hash, block.Height)
-		localWG.Done()
 	}()
 
 	localWG.Wait()

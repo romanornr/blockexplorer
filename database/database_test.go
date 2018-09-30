@@ -1,20 +1,20 @@
 package database
 
 import (
-	"testing"
-	"runtime"
-	"path"
 	"github.com/romanornr/cyberchain/client"
 	"github.com/spf13/viper"
 	"os"
+	"path"
+	"runtime"
+	"testing"
 )
 
 func TestOpen(t *testing.T) {
 	Open()
 	client.GetViperConfig()
 
-	_, filename, _, _ := runtime.Caller(0)       // get full path of this file
-	coinsymbol := viper.GetString("coin.symbol") // example: btc or via
+	_, filename, _, _ := runtime.Caller(0)                    // get full path of this file
+	coinsymbol := viper.GetString("coin.symbol")              // example: btc or via
 	dbfile := path.Join(path.Dir(filename), coinsymbol+".db") //btc.db or via.db
 
 	// check if file exist
@@ -26,7 +26,7 @@ func TestOpen(t *testing.T) {
 
 func TestSetupDB(t *testing.T) {
 	_, err := SetupDB()
-	if err != nil  {
+	if err != nil {
 		t.Errorf("Error by seting up database buckets: %s", err)
 	}
 }

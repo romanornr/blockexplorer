@@ -14,11 +14,12 @@ import (
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcutil"
 	"github.com/coreos/bbolt"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/client"
 	"github.com/spf13/viper"
-	"github.com/btcsuite/btcutil"
+	"github.com/romanornr/cyberchain/address"
 )
 
 var db *bolt.DB
@@ -75,6 +76,14 @@ func SetupDB() (*bolt.DB, error) {
 		_, err = tx.CreateBucketIfNotExists([]byte("Blockheight"))
 		if err != nil {
 			return fmt.Errorf("could not create blockheight bucket: %v", err)
+		}
+		return nil
+	})
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err = tx.CreateBucketIfNotExists([]byte("Adresses"))
+		if err != nil {
+			return fmt.Errorf("coult not create Adresses bucket: %v", err)
 		}
 		return nil
 	})
@@ -199,7 +208,6 @@ func RollBackChainByBlockHash(blockhash string) error {
 			return errBucketNotFound
 		}
 
-
 		c := bucket.Cursor()
 
 		for k, _ := c.Seek([]byte(blockhash)); k != nil; k, _ = c.Next() {
@@ -280,3 +288,30 @@ func FetchTransactionHashByBlockhash(blockHash string) []byte {
 }
 
 
+// also need to search for existing address & be able to update existing one
+func IndexAdress(db *bolt.DB, address address.Index) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Adresses"))
+
+		var result bytes.Buffer
+		encoder := gob.NewEncoder(&result)
+		encoder.Encode(address)
+
+		b.Put([]byte(address.AddrStr), []byte(result.Bytes()))
+		return nil
+	})
+}
+
+func ViewAddress(db *bolt.DB, address string) []byte {
+	var addrIndex []byte
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Addresses"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+
+		addrIndex = bucket.Get([]byte(address))
+		return nil
+	})
+	return addrIndex
+}

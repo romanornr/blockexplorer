@@ -121,7 +121,7 @@ func GetDifficulty() (float64, error) {
 	return difficulty, err
 }
 
-func SearchRawTransactionsVerbose(address btcutil.Address, skip, count int, reverse bool, filterAddrs []string) []*btcjson.SearchRawTransactionsResult{
+func SearchRawTransactionsVerbose(address btcutil.Address, skip, count int, reverse bool, filterAddrs []string) []*btcjson.SearchRawTransactionsResult {
 	tx, err := rpclient.SearchRawTransactionsVerbose(address, skip, count, reverse, reverse, filterAddrs)
 	if err != nil {
 		log.Printf("Search raw tx error: %s", err)

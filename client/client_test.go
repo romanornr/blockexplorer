@@ -1,8 +1,8 @@
 package client
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestGetInstance(t *testing.T) {

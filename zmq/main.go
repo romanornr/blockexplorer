@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/zeromq/goczmq"
-	"log"
 	"encoding/hex"
 	"fmt"
+	"github.com/zeromq/goczmq"
+	"log"
 )
 
 func main() {

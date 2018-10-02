@@ -81,7 +81,7 @@ func SetupDB() (*bolt.DB, error) {
 	})
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		_, err = tx.CreateBucketIfNotExists([]byte("Adresses"))
+		_, err = tx.CreateBucketIfNotExists([]byte("Addresses"))
 		if err != nil {
 			return fmt.Errorf("coult not create Adresses bucket: %v", err)
 		}
@@ -256,7 +256,7 @@ func AddTransaction(db *bolt.DB, Transaction *btcjson.TxRawResult) error {
 
 // view the block by giving the blockhash string
 // Is that a good idea to return just a slice?
-// Maybe it should be a Block struct, so the func will return
+// Maybe it should be a Block struct, so the func will return // hhmm
 // (*btcjson.GetBlockVerboseResult, err) or
 // (*btcjson.GetBlockVerboseResult, bool), where bool is existence of the block.
 func ViewBlock(db *bolt.DB, blockHash string) []byte {
@@ -291,17 +291,28 @@ func FetchTransactionHashByBlockhash(blockHash string) []byte {
 // also need to search for existing address & be able to update existing one
 func IndexAdress(db *bolt.DB, address address.Index) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("Adresses"))
+		b := tx.Bucket([]byte("Addresses"))
 
 		var result bytes.Buffer
 		encoder := gob.NewEncoder(&result)
 		encoder.Encode(address)
+
+		////check if exist in database             // Need fixing
+		//var addrInDatabase address.Index // this
+		//addressInDatabase := ViewAddress(db, address.AddrStr)
+		//if len(addressInDatabase) > 1{
+		//	decoder := gob.NewDecoder(bytes.NewReader(addressInDatabase))
+		//	decoder.Decode(&addrInDatabase)
+		//}
+
 
 		b.Put([]byte(address.AddrStr), []byte(result.Bytes()))
 		return nil
 	})
 }
 
+// takes the address string and finds the address in the "Addresses" bucket
+// returns the address in []byte. Use gob.NewDecoder to decode
 func ViewAddress(db *bolt.DB, address string) []byte {
 	var addrIndex []byte
 	db.View(func(tx *bolt.Tx) error {
@@ -314,4 +325,15 @@ func ViewAddress(db *bolt.DB, address string) []byte {
 		return nil
 	})
 	return addrIndex
+}
+
+// delete an address out of the database "Addresses" bucket
+func DeleteAddress(db *bolt.DB, address string)  error {
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Addresses"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+		return bucket.Delete([]byte(address))
+	})
 }

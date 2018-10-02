@@ -3,15 +3,16 @@ package rebuilddb
 import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/romanornr/cyberchain/address"
+	_"github.com/romanornr/cyberchain/address"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"gopkg.in/cheggaaa/pb.v2"
 	"log"
 	"sync"
+	"fmt"
+	"github.com/romanornr/cyberchain/address"
 	"encoding/gob"
 	"bytes"
-	"fmt"
 )
 
 var db = database.GetDatabaseInstance()
@@ -26,12 +27,13 @@ var db = database.GetDatabaseInstance()
 
 func BuildDatabase() {
 
-	currentBlock := 5473972
+	startblock := 5422072-1
+	currentBlock := 5422072+10
 	progressBar := pb.StartNew(currentBlock)
 	wg := sync.WaitGroup{}
-	wg.Add(currentBlock-1)
+	wg.Add(currentBlock-startblock)
 
-	for i := int64(5422071); i < int64(currentBlock); i++ {
+	for i := int64(startblock); i < int64(currentBlock); i++ {
 		go resolveBlockToDB(i, progressBar, &wg)
 	}
 
@@ -58,6 +60,7 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 			txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
 			tx := blockdata.GetRawTransactionVerbose(txhash)
 			database.AddTransaction(db, tx)
+			resolveAddresses(tx)
 		}
 	}()
 
@@ -85,34 +88,55 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 // example: https://explorer.viacoin.org/api/addr/Vrh9ro5WhykxrPPBe2cgyNiB2sAVqzkWjX
 func resolveAddresses(transaction *btcjson.TxRawResult) {
 
-	var address address.Index
+	        var addr address.Index
 
-	for i := 0; i < len(transaction.Vout); i++ {
-		for j := 0; i < len(transaction.Vout[i].ScriptPubKey.Addresses); j++ {
-			address.AddrStr = transaction.Vout[i].ScriptPubKey.Addresses[j]
-			address.TotalReceived = transaction.Vout[i].Value
-			address.TotalReceivedSat = address.TotalReceived * 100000000
+			addr.AddrStr = transaction.Vout[0].ScriptPubKey.Addresses[0]
+			addr.TotalReceived = transaction.Vout[0].Value
+			addr.TotalReceivedSat = addr.TotalReceived * 100000000
 			//address.TotalSent
 			//address.TotalSentSat
-			address.UnconfirmedBalance = 0
-			address.UnconfirmedTxApperances = 0
-			address.Transactions = append(address.Transactions, transaction.Txid)
+			addr.UnconfirmedBalance = 0
+			addr.UnconfirmedTxApperances = 0
+			addr.Transactions = append(addr.Transactions, transaction.Txid)
 
-			database.IndexAdress(db, address)
-		}
-		//transaction.Vout[i].ScriptPubKey.Addresses[0]
-	}
+			fmt.Println(addr.AddrStr)
+			fmt.Println(transaction.Txid)
+			fmt.Println(addr.TotalReceived)
+
+			database.IndexAdress(db, addr)
+
+
+	//var addr address.Index
+	//
+	//for i := 0; i < len(transaction.Vout); i++ {
+	//	for j := 0; i < len(transaction.Vout[i].ScriptPubKey.Addresses); j++ {
+	//		addr.AddrStr = transaction.Vout[i].ScriptPubKey.Addresses[j]
+	//		addr.TotalReceived = transaction.Vout[i].Value
+	//		addr.TotalReceivedSat = addr.TotalReceived * 100000000
+	//		//address.TotalSent
+	//		//address.TotalSentSat
+	//		addr.UnconfirmedBalance = 0
+	//		addr.UnconfirmedTxApperances = 0
+	//		addr.Transactions = append(addr.Transactions, transaction.Txid)
+	//
+	//		fmt.Println(addr.AddrStr)
+	//
+	//		database.IndexAdress(db, addr)
+	//	}
+	//	//transaction.Vout[i].ScriptPubKey.Addresses[0]
+	//}
 }
 
-// end result test 1 address
+//end result test 1 address
 func test() {
+
 	var addr address.Index
-	decoder := gob.NewDecoder(bytes.NewReader(database.ViewAddress(db, "Ea6aiVS5dGWqVtQ4Akd9KCPw5HFmTbBPvX")))
+	fmt.Println(database.ViewAddress(db, "VdMPvn7vUTSzbYjiMDs1jku9wAh1Ri2Y1A"))
+	decoder := gob.NewDecoder(bytes.NewReader(database.ViewAddress(db, "VdMPvn7vUTSzbYjiMDs1jku9wAh1Ri2Y1A")))
 	decoder.Decode(&addr)
 
-	fmt.Printf("address: %s balance: %f", addr.AddrStr, addr.Balance)
-	fmt.Println("\n")
-	fmt.Println(addr)
+	fmt.Printf("address: %s received: %f\n", addr.AddrStr, addr.TotalReceived)
+	//fmt.Println(addr)
 }
 
 // future opt might be using hex instead of TransactionVerbose

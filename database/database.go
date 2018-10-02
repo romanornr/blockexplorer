@@ -297,15 +297,6 @@ func IndexAdress(db *bolt.DB, address address.Index) error {
 		encoder := gob.NewEncoder(&result)
 		encoder.Encode(address)
 
-		////check if exist in database             // Need fixing
-		//var addrInDatabase address.Index // this
-		//addressInDatabase := ViewAddress(db, address.AddrStr)
-		//if len(addressInDatabase) > 1{
-		//	decoder := gob.NewDecoder(bytes.NewReader(addressInDatabase))
-		//	decoder.Decode(&addrInDatabase)
-		//}
-
-
 		b.Put([]byte(address.AddrStr), []byte(result.Bytes()))
 		return nil
 	})

@@ -103,6 +103,26 @@ func resolveAddresses(transaction *btcjson.TxRawResult) {
 			fmt.Println(transaction.Txid)
 			fmt.Println(addr.TotalReceived)
 
+
+			// Check if address was already in the database
+			// use old values to calculate the new values.
+			// addrInDatabase has all the values of what is already in the database
+			var addrInDatabase address.Index
+			addressInDatabase := database.ViewAddress(db, addr.AddrStr)
+			if len(addressInDatabase) > 1 {
+				decoder := gob.NewDecoder(bytes.NewReader(addressInDatabase))
+				decoder.Decode(&addrInDatabase)
+
+				addr.TotalReceived += addrInDatabase.TotalReceived
+				addr.TotalReceivedSat += addrInDatabase.TotalReceivedSat
+				addr.Transactions = append(addr.Transactions, addrInDatabase.Transactions[0])
+
+				// delete old key in the database so the updated one can be inserted instead
+				database.DeleteAddress(db, addr.AddrStr)
+
+				}
+
+
 			database.IndexAdress(db, addr)
 
 

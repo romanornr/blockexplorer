@@ -99,9 +99,10 @@ func resolveAddresses(transaction *btcjson.TxRawResult) {
 			addr.UnconfirmedTxApperances = 0
 			addr.Transactions = append(addr.Transactions, transaction.Txid)
 
-			fmt.Println(addr.AddrStr)
-			fmt.Println(transaction.Txid)
-			fmt.Println(addr.TotalReceived)
+			//fmt.Println(addr.AddrStr)
+			//fmt.Println(transaction.Txid)
+			//fmt.Println(addr.TotalReceived)
+			fmt.Println(transaction.Vin[0].ScriptSig)
 
 
 			// Check if address was already in the database

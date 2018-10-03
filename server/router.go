@@ -12,6 +12,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"encoding/gob"
+	"bytes"
 )
 
 var db = database.GetDatabaseInstance()
@@ -26,6 +28,7 @@ func createRouter() *httprouter.Router {
 	router.GET("/api/"+network+"/blocks", getLatestBlocks)
 	router.GET("/api/"+network+"/block/:hash", getBlock)
 	router.GET("/api/"+network+"/block-index/:height", getBlockIndex)
+	router.GET("/api/"+network+"/tx/:txid", getTransaction)
 
 	fileServer := http.FileServer(http.Dir("static"))
 
@@ -120,4 +123,14 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 	blockIndex := proxy.FindBlockHash(int64(blockheight))
 
 	json.NewEncoder(w).Encode(blockIndex)
+}
+
+func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	txid := ps.ByName("txid")
+
+	var tx *btcjson.TxRawResult
+	decoder := gob.NewDecoder(bytes.NewReader(database.GetTransaction(db, txid)))
+	decoder.Decode(&tx)
+
+	json.NewEncoder(w).Encode(tx)
 }

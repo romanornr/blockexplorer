@@ -287,6 +287,22 @@ func FetchTransactionHashByBlockhash(blockHash string) []byte {
 	return block
 }
 
+// takes the txid string and finds the address in the "Transactions" bucket
+// returns the transaction in []byte. Use gob.NewDecoder to decode
+func GetTransaction(db *bolt.DB, txid string) []byte {
+	var transaction []byte
+	db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("Transactions"))
+		if bucket == nil {
+			return errBucketNotFound
+		}
+
+		transaction = bucket.Get([]byte(txid))
+		return nil
+	})
+	return transaction
+}
+
 
 // also need to search for existing address & be able to update existing one
 func IndexAdress(db *bolt.DB, address address.Index) error {

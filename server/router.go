@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"encoding/gob"
 	"bytes"
+	"github.com/romanornr/cyberchain/insight"
 )
 
 var db = database.GetDatabaseInstance()
@@ -128,7 +129,7 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
 
-	var tx *btcjson.TxRawResult
+	var tx *insight.TxRawResult
 	decoder := gob.NewDecoder(bytes.NewReader(database.GetTransaction(db, txid)))
 	decoder.Decode(&tx)
 

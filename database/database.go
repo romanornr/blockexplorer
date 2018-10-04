@@ -20,6 +20,7 @@ import (
 	"github.com/romanornr/cyberchain/client"
 	"github.com/spf13/viper"
 	"github.com/romanornr/cyberchain/address"
+	"github.com/romanornr/cyberchain/insight"
 )
 
 var db *bolt.DB
@@ -238,7 +239,7 @@ func AddRawTransaction(db *bolt.DB, TxFromBytes []byte, Tx *btcutil.Tx) error {
 	})
 }
 
-func AddTransaction(db *bolt.DB, Transaction *btcjson.TxRawResult) error {
+func AddTransaction(db *bolt.DB, Transaction insight.TxRawResult) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
 		if err != nil {

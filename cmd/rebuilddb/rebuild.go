@@ -13,6 +13,7 @@ import (
 	"github.com/romanornr/cyberchain/address"
 	"encoding/gob"
 	"bytes"
+	"github.com/romanornr/cyberchain/insight"
 )
 
 var db = database.GetDatabaseInstance()
@@ -59,7 +60,16 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 		for j := 0; j < len(block.Tx); j++ {
 			txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
 			tx := blockdata.GetRawTransactionVerbose(txhash)
-			database.AddTransaction(db, tx)
+
+			//x := database.GetTransaction(db, tx.Vin[0].Txid)
+			insighttx := insight.TxRawResult{
+				tx,
+				0.022,
+			}
+
+			fmt.Println(insighttx)
+
+			database.AddTransaction(db, insighttx)
 			resolveAddresses(tx)
 		}
 	}()

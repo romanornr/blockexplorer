@@ -1,19 +1,19 @@
 package rebuilddb
 
 import (
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	_"github.com/romanornr/cyberchain/address"
-	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/database"
-	"gopkg.in/cheggaaa/pb.v2"
+	"bytes"
+	"encoding/gob"
+	"fmt"
 	"log"
 	"sync"
-	"fmt"
-	"github.com/romanornr/cyberchain/address"
-	"encoding/gob"
-	"bytes"
+
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	_ "github.com/romanornr/cyberchain/address"
+	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/database"
 	"github.com/romanornr/cyberchain/insight"
+	"gopkg.in/cheggaaa/pb.v2"
 )
 
 var db = database.GetDatabaseInstance()
@@ -25,14 +25,13 @@ var db = database.GetDatabaseInstance()
 	try to analyze this address: https://chainz.cryptoid.info/via/address.dws?369935.htm
 */
 
-
 func BuildDatabase() {
 
-	startblock := 5422072-1
-	currentBlock := 5422072+10
+	startblock := 5422072 - 1
+	currentBlock := 5422072 + 10
 	progressBar := pb.StartNew(currentBlock)
 	wg := sync.WaitGroup{}
-	wg.Add(currentBlock-startblock)
+	wg.Add(currentBlock - startblock)
 
 	for i := int64(startblock); i < int64(currentBlock); i++ {
 		go resolveBlockToDB(i, progressBar, &wg)
@@ -61,10 +60,12 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 			txhash, _ := chainhash.NewHashFromStr(block.Tx[j])
 			tx := blockdata.GetRawTransactionVerbose(txhash)
 
-			//x := database.GetTransaction(db, tx.Vin[0].Txid)
+			//Needs to be changed
 			insighttx := insight.TxRawResult{
 				tx,
 				0.022,
+				0.1,
+				200.10,
 			}
 
 			fmt.Println(insighttx)
@@ -88,7 +89,6 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 		database.AddIndexBlockHeightWithBlockHash(db, block.Hash, block.Height)
 	}()
 
-
 	localWG.Wait()
 	callerWG.Done()
 	prBar.Increment()
@@ -98,44 +98,41 @@ func resolveBlockToDB(i int64, prBar *pb.ProgressBar, callerWG *sync.WaitGroup) 
 // example: https://explorer.viacoin.org/api/addr/Vrh9ro5WhykxrPPBe2cgyNiB2sAVqzkWjX
 func resolveAddresses(transaction *btcjson.TxRawResult) {
 
-	        var addr address.Index
+	var addr insight.AddrIndex
 
-			addr.AddrStr = transaction.Vout[0].ScriptPubKey.Addresses[0]
-			addr.TotalReceived = transaction.Vout[0].Value
-			addr.TotalReceivedSat = addr.TotalReceived * 100000000
-			//address.TotalSent
-			//address.TotalSentSat
-			addr.UnconfirmedBalance = 0
-			addr.UnconfirmedTxApperances = 0
-			addr.Transactions = append(addr.Transactions, transaction.Txid)
+	addr.AddrStr = transaction.Vout[0].ScriptPubKey.Addresses[0]
+	addr.TotalReceived = transaction.Vout[0].Value
+	addr.TotalReceivedSat = addr.TotalReceived * 100000000
+	//address.TotalSent
+	//address.TotalSentSat
+	addr.UnconfirmedBalance = 0
+	addr.UnconfirmedTxApperances = 0
+	addr.Transactions = append(addr.Transactions, transaction.Txid)
 
-			//fmt.Println(addr.AddrStr)
-			//fmt.Println(transaction.Txid)
-			//fmt.Println(addr.TotalReceived)
-			fmt.Println(transaction.Vin[0].ScriptSig)
+	//fmt.Println(addr.AddrStr)
+	//fmt.Println(transaction.Txid)
+	//fmt.Println(addr.TotalReceived)
+	fmt.Println(transaction.Vin[0].ScriptSig)
 
+	// Check if address was already in the database
+	// use old values to calculate the new values.
+	// addrInDatabase has all the values of what is already in the database
+	var addrInDatabase insight.AddrIndex
+	addressInDatabase := database.ViewAddress(db, addr.AddrStr)
+	if len(addressInDatabase) > 1 {
+		decoder := gob.NewDecoder(bytes.NewReader(addressInDatabase))
+		decoder.Decode(&addrInDatabase)
 
-			// Check if address was already in the database
-			// use old values to calculate the new values.
-			// addrInDatabase has all the values of what is already in the database
-			var addrInDatabase address.Index
-			addressInDatabase := database.ViewAddress(db, addr.AddrStr)
-			if len(addressInDatabase) > 1 {
-				decoder := gob.NewDecoder(bytes.NewReader(addressInDatabase))
-				decoder.Decode(&addrInDatabase)
+		addr.TotalReceived += addrInDatabase.TotalReceived
+		addr.TotalReceivedSat += addrInDatabase.TotalReceivedSat
+		addr.Transactions = append(addr.Transactions, addrInDatabase.Transactions[0])
 
-				addr.TotalReceived += addrInDatabase.TotalReceived
-				addr.TotalReceivedSat += addrInDatabase.TotalReceivedSat
-				addr.Transactions = append(addr.Transactions, addrInDatabase.Transactions[0])
+		// delete old key in the database so the updated one can be inserted instead
+		database.DeleteAddress(db, addr.AddrStr)
 
-				// delete old key in the database so the updated one can be inserted instead
-				database.DeleteAddress(db, addr.AddrStr)
+	}
 
-				}
-
-
-			database.IndexAdress(db, addr)
-
+	database.IndexAdress(db, addr)
 
 	//var addr address.Index
 	//
@@ -161,7 +158,7 @@ func resolveAddresses(transaction *btcjson.TxRawResult) {
 //end result test 1 address
 func test() {
 
-	var addr address.Index
+	var addr insight.AddrIndex
 	fmt.Println(database.ViewAddress(db, "VdMPvn7vUTSzbYjiMDs1jku9wAh1Ri2Y1A"))
 	decoder := gob.NewDecoder(bytes.NewReader(database.ViewAddress(db, "VdMPvn7vUTSzbYjiMDs1jku9wAh1Ri2Y1A")))
 	decoder.Decode(&addr)

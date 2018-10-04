@@ -18,9 +18,8 @@ import (
 	"github.com/coreos/bbolt"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/client"
-	"github.com/spf13/viper"
-	"github.com/romanornr/cyberchain/address"
 	"github.com/romanornr/cyberchain/insight"
+	"github.com/spf13/viper"
 )
 
 var db *bolt.DB
@@ -304,9 +303,8 @@ func GetTransaction(db *bolt.DB, txid string) []byte {
 	return transaction
 }
 
-
 // also need to search for existing address & be able to update existing one
-func IndexAdress(db *bolt.DB, address address.Index) error {
+func IndexAdress(db *bolt.DB, address insight.AddrIndex) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Addresses"))
 
@@ -336,7 +334,7 @@ func ViewAddress(db *bolt.DB, address string) []byte {
 }
 
 // delete an address out of the database "Addresses" bucket
-func DeleteAddress(db *bolt.DB, address string)  error {
+func DeleteAddress(db *bolt.DB, address string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("Addresses"))
 		if bucket == nil {

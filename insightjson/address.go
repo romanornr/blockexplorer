@@ -1,4 +1,4 @@
-package insight
+package insightjson
 
 type Address struct {
 	Address      string `json:"address, omitempty"`

@@ -2,7 +2,6 @@ package insightjson
 
 type BlockResult struct {
 	Hash          string   `json:"hash"`
-	Confirmations int64    `json:"confirmations"`
 	Size          int32    `json:"size"`
 	Height        int64    `json:"height"`
 	Version       int32    `json:"version"`
@@ -12,8 +11,9 @@ type BlockResult struct {
 	Nonce         uint32   `json:"nonce"`
 	Bits          string   `json:"bits"`
 	Difficulty    float64  `json:"difficulty"`
-	PreviousHash  string   `json:"previousblockhash"`
-	NextHash      string   `json:"nextblockhash,omitempty"`
-	Reward        float64  `json:"reward"`
+	Confirmations int64	   `json:"confirmations"`
+	PreviousBlockHash  string   `json:"previousblockhash"`
+	NextBlockHash      string   `json:"nextblockhash,omitempty"`
+	//Reward        float64  `json:"reward"`
 	IsMainChain   bool     `json:"isMainChain"`
 }

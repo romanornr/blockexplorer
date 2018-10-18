@@ -15,6 +15,7 @@ import (
 	"encoding/gob"
 	"bytes"
 	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/romanornr/cyberchain/insight"
 )
 
 var db = database.GetDatabaseInstance()
@@ -81,6 +82,8 @@ func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 	json.NewEncoder(w).Encode(blocks)
 }
 
+// get block by blockhash using the api url
+// example: http://127.0.0.1:8000/api/via/block/45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc
 func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
 	hash, err := chainhash.NewHashFromStr(ps.ByName("hash"))
@@ -97,7 +100,9 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
 	block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
 
-	json.NewEncoder(w).Encode(&block)
+	apiblock, err := insight.ConvertToInsightBlock(block)
+
+	json.NewEncoder(w).Encode(&apiblock)
 }
 
 // confirmations from blocks always change. Block confirmations can be calculated with the following method

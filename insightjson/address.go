@@ -21,3 +21,5 @@ type AddressInfo struct {
 	TxAppearances            int64    `json:"txApperances"`
 	TransactionsID           []string `json:"transactions,omitempty"`
 }
+
+

@@ -18,7 +18,7 @@ import (
 	"github.com/coreos/bbolt"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/client"
-	"github.com/romanornr/cyberchain/insight"
+	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/spf13/viper"
 )
 
@@ -238,7 +238,7 @@ func AddRawTransaction(db *bolt.DB, TxFromBytes []byte, Tx *btcutil.Tx) error {
 	})
 }
 
-func AddTransaction(db *bolt.DB, Transaction insight.TxRawResult) error {
+func AddTransaction(db *bolt.DB, Transaction insightjson.Tx) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("Transactions"))
 		if err != nil {
@@ -249,7 +249,7 @@ func AddTransaction(db *bolt.DB, Transaction insight.TxRawResult) error {
 		encoder := gob.NewEncoder(&result)
 		encoder.Encode(Transaction)
 
-		b.Put([]byte(Transaction.Hash), []byte(result.Bytes()))
+		b.Put([]byte(Transaction.Txid), []byte(result.Bytes()))
 		return nil
 	})
 }
@@ -304,7 +304,7 @@ func GetTransaction(db *bolt.DB, txid string) []byte {
 }
 
 // also need to search for existing address & be able to update existing one
-func IndexAdress(db *bolt.DB, address insight.AddrIndex) error {
+func IndexAdress(db *bolt.DB, address insightjson.Address) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Addresses"))
 
@@ -312,7 +312,7 @@ func IndexAdress(db *bolt.DB, address insight.AddrIndex) error {
 		encoder := gob.NewEncoder(&result)
 		encoder.Encode(address)
 
-		b.Put([]byte(address.AddrStr), []byte(result.Bytes()))
+		b.Put([]byte(address.Address), []byte(result.Bytes()))
 		return nil
 	})
 }

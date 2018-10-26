@@ -1,12 +1,11 @@
 package mongodb
 
 import (
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
-	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/insight"
-	"github.com/romanornr/cyberchain/insightjson"
 	"fmt"
+
+	"github.com/globalsign/mgo"
+	"github.com/romanornr/cyberchain/insight"
+	"github.com/btcsuite/btcd/btcjson"
 )
 
 var session *mgo.Session
@@ -23,40 +22,42 @@ func GetSession() *mgo.Session {
 	return session
 }
 
+// delete the database. Only use for testing
+func DropDatabase() error {
+	err := session.DB("Viacoin").DropDatabase()
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
 
-func Test() {
+// add Blocks to the database. Collection name: Blocks
+// NEED FIX: DOES NOT ERROR WHEN INSERTING EXISTING KEY :S
+func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 	GetSession()
+	//defer session.Close()
 
-	defer session.Close()
-
-	c := session.DB("viacoin").C("Blocks")
+	collection := session.DB("viacoin").C("Blocks")
 
 	index := mgo.Index{
-		Key: []string{"hash"},
+		Key:    []string{"hash"},
 		Unique: true,
 	}
 
-	err := c.EnsureIndex(index)
+	err := collection.EnsureIndex(index)
 	if err != nil {
 		panic(err)
 	}
 
-	h := blockdata.GetBlockHash(2)
-	block, _ := blockdata.GetBlock(h)
-	x, _ := insight.ConvertToInsightBlock(block)
+	err = collection.Insert()
 
-	err = c.Insert(x)
+	insightBlock, _ := insight.ConvertToInsightBlock(Block)
+
+	err = collection.Insert(insightBlock)
 
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("Block with hash %s did not get inserted", Block.Hash)
 	}
 
-	result := insightjson.BlockResult{}
-
-	err = c.Find(bson.M{"hash": x.Hash}).One(&result)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("result: ", result)
+	return err
 }

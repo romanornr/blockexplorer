@@ -3,11 +3,12 @@ package Blockchain
 import (
 	"bytes"
 	"encoding/gob"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"testing"
 )
 
 func BuildMockDatabase() {

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 
+	"log"
+
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"log"
 )
 
 type Block struct {

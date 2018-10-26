@@ -5,6 +5,7 @@ import (
 	"container/list"
 	"encoding/gob"
 	"fmt"
+
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/go-errors/errors"
 	"github.com/romanornr/cyberchain/blockdata"

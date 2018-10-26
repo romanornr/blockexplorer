@@ -1,21 +1,22 @@
 package server
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
 	"github.com/romanornr/cyberchain/Blockchain"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"github.com/spf13/viper"
-	"log"
-	"net/http"
-	"strconv"
-	"encoding/gob"
-	"bytes"
-	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/insight"
+	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/spf13/viper"
 )
 
 var db = database.GetDatabaseInstance()

@@ -7,3 +7,7 @@ import (
 func TestGetSession(t *testing.T) {
 	GetSession()
 }
+
+func TestTest(t *testing.T) {
+	Test()
+}

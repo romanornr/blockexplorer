@@ -24,8 +24,9 @@ func TestDropDatabase(t *testing.T) {
 	databases, _ := session.DatabaseNames()
 
 	for _, databases := range databases {
-		if databases == "minimalGraphql" {
+		if databases == "Viacoin" {
 			fmt.Println("found")
+			t.Error("Old database still exists. Failed dropping.")
 		}
 	}
 }
@@ -41,8 +42,8 @@ func TestAddBlock(t *testing.T) {
 
 	result := insightjson.BlockResult{}
 
-	c := session.DB("viacoin").C("Blocks")
-	defer session.Close()
+	c := session.DB(Database).C("Blocks")
+	//defer session.Close()
 
 	log.Println("Searching for block with height 2")
 	err := c.Find(bson.M{"hash": block.Hash}).One(&result)
@@ -56,4 +57,9 @@ func TestAddBlock(t *testing.T) {
 	}
 
 	log.Printf("Success: Block with hash %s found in the database", result.Hash)
+
+}
+
+func TestFetchBlockHashByBlockHeight(t *testing.T) {
+	FetchBlockHashByBlockHeight(299)
 }

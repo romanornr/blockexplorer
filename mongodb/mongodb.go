@@ -7,6 +7,8 @@ import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/globalsign/mgo"
 	"github.com/romanornr/cyberchain/insight"
+	"github.com/globalsign/mgo/bson"
+	"github.com/romanornr/cyberchain/insightjson"
 )
 
 const (
@@ -49,7 +51,7 @@ func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 	GetSession()
 	//defer session.Close()
 
-	collection := session.DB("viacoin").C("Blocks")
+	collection := session.DB(Database).C("Blocks")
 
 	index := mgo.Index{
 		Key:    []string{"hash"},
@@ -72,4 +74,16 @@ func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 	}
 
 	return err
+}
+
+func FetchBlockHashByBlockHeight(blockheight int64) {
+	GetSession()
+	collection := session.DB(Database).C("Blocks")
+	result := insightjson.BlockResult{}
+	//err := collection.Find( { "Height" : blockheight})
+	err := collection.Find(bson.M{ "height": blockheight}).One(&result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(result)
 }

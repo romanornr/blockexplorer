@@ -2,18 +2,30 @@ package mongodb
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/globalsign/mgo"
 	"github.com/romanornr/cyberchain/insight"
-	"github.com/btcsuite/btcd/btcjson"
+)
+
+const (
+	MongoDBHosts = "localhost"
+	Database     = "Viacoin"
 )
 
 var session *mgo.Session
 
+var mongoDBDialInfo = &mgo.DialInfo{
+	Addrs:    []string{MongoDBHosts},
+	Timeout: 60 * time.Second,
+	Database: Database,
+}
+
 func GetSession() *mgo.Session {
 	if session == nil {
 		var err error
-		session, err = mgo.Dial("mongodb://localhost")
+		session, err = mgo.DialWithInfo(mongoDBDialInfo)
 		if err != nil {
 			session.Close()
 			panic(err)
@@ -24,7 +36,7 @@ func GetSession() *mgo.Session {
 
 // delete the database. Only use for testing
 func DropDatabase() error {
-	err := session.DB("Viacoin").DropDatabase()
+	err := session.DB(Database).DropDatabase()
 	if err != nil {
 		panic(err)
 	}

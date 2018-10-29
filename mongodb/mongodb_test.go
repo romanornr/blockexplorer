@@ -24,7 +24,7 @@ func TestDropDatabase(t *testing.T) {
 	databases, _ := session.DatabaseNames()
 
 	for _, databases := range databases {
-		if databases == "Viacoin" {
+		if databases == Database {
 			fmt.Println("found")
 			t.Error("Old database still exists. Failed dropping.")
 		}
@@ -60,6 +60,23 @@ func TestAddBlock(t *testing.T) {
 
 }
 
-func TestFetchBlockHashByBlockHeight(t *testing.T) {
-	FetchBlockHashByBlockHeight(299)
+func mockDatabase() {
+	for i := 1; i < 1001; i ++ {
+		blockhash := blockdata.GetBlockHash(int64(i))
+		block, _ := blockdata.GetBlock(blockhash)
+		AddBlock(block)
+	}
+}
+
+func TestGetLastBlock(t *testing.T) {
+	mockDatabase()
+	latestblock, err := GetLastBlock()
+	if err != nil {
+		log.Printf("Error trying to find the latest block: %v", err)
+	}
+	expect := int64(1000)
+	if latestblock.Height != expect {
+		t.Errorf("Latest block is wrong \nExpected: %d \nGot: %d", expect, latestblock.Height)
+	}
+	log.Printf("Success: Latest block found with height: %d", latestblock.Height)
 }

@@ -13,7 +13,7 @@ import (
 
 const (
 	MongoDBHosts = "localhost"
-	Database     = "Viacoin"
+	Database     = "viacoin"
 )
 
 var session *mgo.Session
@@ -76,7 +76,8 @@ func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 	return err
 }
 
-func FetchBlockHashByBlockHeight(blockheight int64) {
+// get block by blockheight
+func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
 	GetSession()
 	collection := session.DB(Database).C("Blocks")
 	result := insightjson.BlockResult{}
@@ -85,5 +86,30 @@ func FetchBlockHashByBlockHeight(blockheight int64) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(result)
+
+	return result
 }
+
+func GetLastBlock() (insightjson.BlockResult, error) {
+	GetSession()
+	collection := session.DB(Database).C("Blocks")
+	result := insightjson.BlockResult{}
+
+	dbSize, err := collection.Count()
+	if err != nil {
+		return result, err
+	}
+
+
+	err = collection.Find(nil).Skip(dbSize-1).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	fmt.Println("last block:")
+
+	fmt.Println(result)
+
+	return result, err
+}
+

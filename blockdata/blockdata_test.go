@@ -4,6 +4,7 @@ import (
 	"testing"
 	"log"
 	"fmt"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 func TestGetBlockCount(t *testing.T) {
@@ -27,4 +28,10 @@ func TestGetBlock(t *testing.T) {
 	blockhash := GetBlockHash(1)
 	result, _ := GetBlock(blockhash)
 	fmt.Println(result)
+}
+
+func TestGetRawTransactionVerbose(t *testing.T) {
+	hash, _ := chainhash.NewHashFromStr("36a8207c5a3c46974ef777f5904c62409137eda73103ca324deb82b894785e9d")
+	transaction := GetRawTransactionVerbose(hash)
+	fmt.Println(transaction)
 }

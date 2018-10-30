@@ -81,7 +81,7 @@ func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
 	GetSession()
 	collection := session.DB(Database).C("Blocks")
 	result := insightjson.BlockResult{}
-	//err := collection.Find( { "Height" : blockheight})
+
 	err := collection.Find(bson.M{ "height": blockheight}).One(&result)
 	if err != nil {
 		panic(err)
@@ -90,6 +90,7 @@ func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
 	return result
 }
 
+// get the latest block and return it in insightjson format
 func GetLastBlock() (insightjson.BlockResult, error) {
 	GetSession()
 	collection := session.DB(Database).C("Blocks")
@@ -105,10 +106,6 @@ func GetLastBlock() (insightjson.BlockResult, error) {
 	if err != nil {
 		return result, err
 	}
-
-	fmt.Println("last block:")
-
-	fmt.Println(result)
 
 	return result, err
 }

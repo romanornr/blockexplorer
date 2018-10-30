@@ -3,6 +3,7 @@ package insight
 import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/btcsuite/btcutil"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
@@ -26,4 +27,87 @@ func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.B
 
 	return &insightBlock, nil
 
+}
+
+func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
+
+	var newTransaction []insightjson.Tx
+
+	txNew := insightjson.Tx{
+		Txid: tx.Txid,
+		Version: tx.Version,
+		Locktime: tx.LockTime,
+		Blockhash: tx.BlockHash,
+		Confirmations: tx.Confirmations,
+		Time: tx.Time,
+		Size: uint32(len(tx.Hex) /2),
+	}
+
+	var vInSum, vOutSum float64
+
+	for vinID, vin := range tx.Vin {
+
+		insightVin := &insightjson.Vin{
+			Txid:     vin.Txid,
+			Vout:     vin.Vout,
+			Sequence: vin.Sequence,
+			N:        vinID,
+			Coinbase: vin.Coinbase,
+		}
+
+		//scriptpubkey
+
+		// address retrieval
+
+		amount, _ := btcutil.NewAmount(insightVin.Value)
+		insightVin.ValueSat = int64(amount)
+
+		vInSum += insightVin.Value
+		txNew.Vins = append(txNew.Vins, insightVin)
+	}
+
+
+	for _, v := range tx.Vout {
+		InsightVout := &insightjson.Vout{
+			Value: v.Value,
+			N:     v.N,
+			ScriptPubKey: insightjson.ScriptPubKey{
+				Addresses: v.ScriptPubKey.Addresses,
+				Type:      v.ScriptPubKey.Type,
+				Hex:       v.ScriptPubKey.Hex,
+			},
+		}
+
+		//if !noAsm {
+		//	InsightVout.ScriptPubKey.Asm = v.ScriptPubKey.Asm
+		//}
+
+		txNew.Vouts = append(txNew.Vouts, InsightVout)
+		vOutSum += v.Value
+	}
+
+	amount, _ := btcutil.NewAmount(vOutSum)
+	txNew.ValueOut = amount.ToBTC()
+
+	amount, _ = btcutil.NewAmount(vInSum)
+	txNew.ValueIn = amount.ToBTC()
+
+	amount, _ = btcutil.NewAmount(txNew.ValueIn - txNew.ValueOut)
+	txNew.Fees = amount.ToBTC()
+
+	if txNew.Vins != nil && txNew.Vins[0].Coinbase != "" {
+		txNew.IsCoinBase = true
+		txNew.ValueIn = 0
+		txNew.Fees = 0
+		for _, v := range txNew.Vins {
+			v.Value = 0
+			v.ValueSat = 0
+		}
+	}
+
+	// if !noSpent
+
+
+	newTransaction = append(newTransaction, txNew)
+	return newTransaction
 }

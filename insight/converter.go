@@ -29,7 +29,12 @@ func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.B
 
 }
 
-func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
+func TxConverter(tx *btcjson.TxRawResult) ([]insightjson.Tx) {
+	return ConvertToInsightTransaction(tx, false, false, false)
+}
+
+//NOTE: Address retrieval and vin needs to be fixed
+func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, noSpent bool) []insightjson.Tx {
 
 	var newTransaction []insightjson.Tx
 
@@ -40,6 +45,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
 		Blockhash: tx.BlockHash,
 		Confirmations: tx.Confirmations,
 		Time: tx.Time,
+		Blocktime: tx.Blocktime,
 		Size: uint32(len(tx.Hex) /2),
 	}
 
@@ -56,6 +62,16 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
 		}
 
 		//scriptpubkey
+		if !noScriptSig {
+			insightVin.ScriptSig = new(insightjson.ScriptSig)
+			if vin.ScriptSig != nil {
+				if !noAsm {
+					insightVin.ScriptSig.Asm = vin.ScriptSig.Asm
+				}
+				insightVin.ScriptSig.Hex = vin.ScriptSig.Hex
+			}
+
+		}
 
 		// address retrieval
 
@@ -78,9 +94,9 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
 			},
 		}
 
-		//if !noAsm {
-		//	InsightVout.ScriptPubKey.Asm = v.ScriptPubKey.Asm
-		//}
+		if !noAsm {
+			InsightVout.ScriptPubKey.Asm = v.ScriptPubKey.Asm
+		}
 
 		txNew.Vouts = append(txNew.Vouts, InsightVout)
 		vOutSum += v.Value
@@ -105,7 +121,9 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult) []insightjson.Tx {
 		}
 	}
 
-	// if !noSpent
+	if !noSpent {
+		//todo
+	}
 
 
 	newTransaction = append(newTransaction, txNew)

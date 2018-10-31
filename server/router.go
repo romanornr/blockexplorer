@@ -14,7 +14,6 @@ import (
 	"github.com/romanornr/cyberchain/database"
 	"github.com/romanornr/cyberchain/insight"
 	"github.com/spf13/viper"
-	"fmt"
 )
 
 var db = database.GetDatabaseInstance()
@@ -133,14 +132,8 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
 	txhash,_ := chainhash.NewHashFromStr(txid)
-	//var tx *insightjson.Tx
-	//decoder := gob.NewDecoder(bytes.NewReader(database.GetTransaction(db, txid)))
-	//decoder.Decode(&tx)
-	//
-	//json.NewEncoder(w).Encode(tx)
 	tx := blockdata.GetRawTransactionVerbose(txhash)
 	txnew := insight.TxConverter(tx)
-	fmt.Println(txnew[0].ValueOut)
 	json.NewEncoder(w).Encode(txnew[0])
 
 }

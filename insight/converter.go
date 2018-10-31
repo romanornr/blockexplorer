@@ -38,6 +38,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 
 	var newTransaction []insightjson.Tx
 
+	// TODO Blockheight
 	txNew := insightjson.Tx{
 		Txid: tx.Txid,
 		Version: tx.Version,
@@ -58,7 +59,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 			Vout:     vin.Vout,
 			Sequence: vin.Sequence,
 			N:        vinID,
-			Coinbase: vin.Coinbase,
+			CoinBase: vin.Coinbase,
 		}
 
 		//scriptpubkey
@@ -111,7 +112,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 	amount, _ = btcutil.NewAmount(txNew.ValueIn - txNew.ValueOut)
 	txNew.Fees = amount.ToBTC()
 
-	if txNew.Vins != nil && txNew.Vins[0].Coinbase != "" {
+	if txNew.Vins != nil && txNew.Vins[0].CoinBase != "" {
 		txNew.IsCoinBase = true
 		txNew.ValueIn = 0
 		txNew.Fees = 0
@@ -124,7 +125,6 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 	if !noSpent {
 		//todo
 	}
-
 
 	newTransaction = append(newTransaction, txNew)
 	return newTransaction

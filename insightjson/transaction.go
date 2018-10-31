@@ -12,7 +12,7 @@ type Tx struct {
 	Time          int64   `json:"time,omitempty"`
 	Blocktime     int64   `json:"blocktime,omitempty"`
 	IsCoinBase    bool    `json:"isCoinBase,omitempty"`
-	ValueOut      float64 `json:"valueOut,omitempty"`
+	ValueOut      float64 `json:"valueOut"`
 	Size          uint32  `json:"size,omitempty"`
 	ValueIn       float64 `json:"valueIn,omitempty"`
 	Fees          float64 `json:"fees,omitempty"`
@@ -27,7 +27,7 @@ type Vin struct {
 	Addr      string     `json:"addr,omitempty"`
 	ValueSat  int64      `json:"valueSat"`
 	Value     float64    `json:"value,omitempty"`
-	Coinbase  string     `json:"coinbase,omitempty"`
+	CoinBase  string     `json:"coinbase,omitempty"`
 }
 
 type Vout struct {

@@ -22,4 +22,25 @@ type AddressInfo struct {
 	TransactionsID           []string `json:"transactions,omitempty"`
 }
 
+// address tx output
+type AddressTxnOutput struct {
+	Address       string  `json:"address"`
+	TxnID         string  `json:"txid"`
+	Vout          uint32  `json:"vout"`
+	Blocktime     int64   `json:"ts,omitempty"`
+	ScriptPubKey  string  `json:"scriptPubKey"`
+	Height        int64   `json:"height,omitempty"`
+	BlockHash     string  `json:"block_hash,omitempty"`
+	Amount        float64 `json:"amount,omitempty"`
+	Atoms         int64   `json:"atoms,omitempty"`
+	Satoshis      int64   `json:"satoshis,omitempty"`
+	Confirmations int64   `json:"confirmations"`
+}
 
+// return from GetSpendDetailsByFundingHash
+type SendByFundingHash struct {
+	FundingTxVoutIndex uint32
+	SpendingTxVinIndex interface{}
+	SpendingTxHash interface{}
+	BlockHeight interface{}
+}

@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/btcsuite/btcd/btcjson"
 	"github.com/globalsign/mgo"
-	"github.com/romanornr/cyberchain/insight"
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -48,7 +46,7 @@ func DropDatabase() error {
 
 // add Blocks to the database. Collection name: Blocks
 // NEED FIX: DOES NOT ERROR WHEN INSERTING EXISTING KEY :S
-func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
+func AddBlock(Block *insightjson.BlockResult) error {
 	GetSession()
 	//defer session.Close()
 
@@ -64,9 +62,7 @@ func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 		panic(err)
 	}
 
-	insightBlock, _ := insight.ConvertToInsightBlock(Block)
-
-	err = collection.Insert(insightBlock)
+	err = collection.Insert(Block)
 
 	if err != nil {
 		return fmt.Errorf("Block with hash %s did not get inserted", Block.Hash)
@@ -109,7 +105,7 @@ func GetLastBlock() (insightjson.BlockResult, error) {
 	return result, err
 }
 
-func AddTransaction(transaction *btcjson.TxRawResult) error {
+func AddTransaction(transaction *insightjson.Tx) error {
 	GetSession()
 	collection := session.DB(Database).C("Transactions")
 
@@ -123,8 +119,7 @@ func AddTransaction(transaction *btcjson.TxRawResult) error {
 		panic(err)
 	}
 
-	tx := insight.TxConverter(transaction)
-	err = collection.Insert(tx[0])
+	err = collection.Insert(transaction)
 
 	if err != nil {
 		panic(err)

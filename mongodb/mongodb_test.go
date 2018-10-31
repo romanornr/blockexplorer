@@ -8,6 +8,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"fmt"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/romanornr/cyberchain/insight"
 )
 
 func TestGetSession(t *testing.T) {
@@ -39,7 +40,8 @@ func TestAddBlock(t *testing.T) {
 	block, _ := blockdata.GetBlock(hash)
 
 	log.Println("Adding block to the database")
-	AddBlock(block)
+	newBlock,_ := insight.ConvertToInsightBlock(block)
+	AddBlock(newBlock)
 
 	result := insightjson.BlockResult{}
 
@@ -65,7 +67,8 @@ func mockDatabase() {
 	for i := 1; i < 1001; i ++ {
 		blockhash := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
-		AddBlock(block)
+		newBlock,_ := insight.ConvertToInsightBlock(block)
+		AddBlock(newBlock)
 	}
 }
 
@@ -84,13 +87,15 @@ func TestGetLastBlock(t *testing.T) {
 
 func TestAddTransaction(t *testing.T) {
 
-	hash0, _:= chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
+	hash0, _:= chainhash.NewHashFromStr("31c0cbc8411de76eac6018183e96d1cc2c904a9b50096758041eec92d9c9b9f9")
 	tx0 := blockdata.GetRawTransactionVerbose(hash0)
-	AddTransaction(tx0)
+	newTx0 := insight.TxConverter(tx0)
+	AddTransaction(&newTx0[0])
 
 	hash,_ := chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
 	tx := blockdata.GetRawTransactionVerbose(hash)
-	AddTransaction(tx)
+	newTx := insight.TxConverter(tx)
+	AddTransaction(&newTx[0])
 }
 
 func TestGetTransaction(t *testing.T) {

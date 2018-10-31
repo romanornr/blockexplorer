@@ -7,6 +7,7 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/globalsign/mgo/bson"
 	"fmt"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 func TestGetSession(t *testing.T) {
@@ -79,4 +80,24 @@ func TestGetLastBlock(t *testing.T) {
 		t.Errorf("Latest block is wrong \nExpected: %d \nGot: %d", expect, latestblock.Height)
 	}
 	log.Printf("Success: Latest block found with height: %d", latestblock.Height)
+}
+
+func TestAddTransaction(t *testing.T) {
+	hash,_ := chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
+	tx := blockdata.GetRawTransactionVerbose(hash)
+	AddTransaction(tx)
+}
+
+func TestGetTransaction(t *testing.T) {
+	hash,_ := chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
+	tx, err := GetTransaction(*hash)
+	if err != nil {
+		t.Errorf("Transaction not found with hash: %s\n", hash)
+	}
+
+	if tx.Txid != hash.String() {
+		t.Errorf("Transaction in Database got hash: %s \nExpected: %s", tx.Txid, hash.String())
+	}
+
+	log.Printf("Success: Transaction in database found with hash: %s", tx.Txid)
 }

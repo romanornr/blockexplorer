@@ -9,6 +9,7 @@ import (
 	"github.com/romanornr/cyberchain/insight"
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 const (
@@ -63,8 +64,6 @@ func AddBlock(Block *btcjson.GetBlockVerboseResult) error {
 		panic(err)
 	}
 
-	err = collection.Insert()
-
 	insightBlock, _ := insight.ConvertToInsightBlock(Block)
 
 	err = collection.Insert(insightBlock)
@@ -110,3 +109,40 @@ func GetLastBlock() (insightjson.BlockResult, error) {
 	return result, err
 }
 
+func AddTransaction(transaction *btcjson.TxRawResult) error {
+	GetSession()
+	collection := session.DB(Database).C("Transactions")
+
+	index := mgo.Index{
+		Key: []string{"txid"},
+		Unique: true,
+	}
+
+	err := collection.EnsureIndex(index)
+	if err != nil {
+		panic(err)
+	}
+
+	tx := insight.TxConverter(transaction)
+	err = collection.Insert(tx[0])
+
+	if err != nil {
+		panic(err)
+	}
+
+	return err
+}
+
+func GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
+	GetSession()
+	collection := session.DB(Database).C("Transactions")
+
+	result := insightjson.Tx{}
+
+	err := collection.Find(bson.M{"txid": txid.String()}).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, err
+}

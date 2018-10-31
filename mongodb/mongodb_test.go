@@ -83,6 +83,11 @@ func TestGetLastBlock(t *testing.T) {
 }
 
 func TestAddTransaction(t *testing.T) {
+
+	hash0, _:= chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
+	tx0 := blockdata.GetRawTransactionVerbose(hash0)
+	AddTransaction(tx0)
+
 	hash,_ := chainhash.NewHashFromStr("d78999b2ad131bd393c06738bd34996da80a556d6b1e9486447a023b91ef6ea3")
 	tx := blockdata.GetRawTransactionVerbose(hash)
 	AddTransaction(tx)

@@ -2,8 +2,10 @@ package insight
 
 import (
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/btcsuite/btcutil"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/romanornr/cyberchain/insightjson"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
@@ -75,6 +77,15 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 		}
 
 		// address retrieval
+		vinHash, _ := chainhash.NewHashFromStr(vin.Txid)
+		vinDbTx, err := mongodb.GetTransaction(*vinHash)  // NOTE TODO fix can't load package: import cycle not allowed
+		if err == nil {
+			if tx.Confirmations == 0 {
+				amount := vinDbTx.Vouts[0].Value
+				insightVin.Value = amount
+			}
+			insightVin.Addr = vinDbTx.Vouts[0].ScriptPubKey.Addresses[0]
+		}
 
 		amount, _ := btcutil.NewAmount(insightVin.Value)
 		insightVin.ValueSat = int64(amount)

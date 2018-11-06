@@ -1,11 +1,8 @@
 package server
 
 import (
-	_"bytes"
+	_ "bytes"
 	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
@@ -14,6 +11,9 @@ import (
 	"github.com/romanornr/cyberchain/database"
 	"github.com/romanornr/cyberchain/insight"
 	"github.com/spf13/viper"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 var db = database.GetDatabaseInstance()
@@ -131,7 +131,7 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
-	txhash,_ := chainhash.NewHashFromStr(txid)
+	txhash, _ := chainhash.NewHashFromStr(txid)
 	tx := blockdata.GetRawTransactionVerbose(txhash)
 	txnew := insight.TxConverter(tx)
 	json.NewEncoder(w).Encode(txnew[0])

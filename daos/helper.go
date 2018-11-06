@@ -7,17 +7,21 @@ import (
 // TODO: implement reading from config
 var dbHosts = []string{"localhost"}
 
-type dbConn string
+type dbName string
 
 const (
 	// Coin <~> Database
-	Via dbConn = "viacoin"
-	Btc dbConn = "Btc"
-	Ltc dbConn = "litecoin"
+	Via dbName = "viacoin"
+	Btc dbName = "Btc"
+	Ltc dbName = "litecoin"
 
 	// timeouts
 	timeout10 = 10 * time.Second
 	timeout60 = 60 * time.Second
+
+	// Collection names
+	txs    = "Txs"
+	blocks = "Blocks"
 )
 
 // // Database dialing info

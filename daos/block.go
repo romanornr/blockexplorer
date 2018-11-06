@@ -7,11 +7,12 @@ import (
 )
 
 type BlockDAO struct {
-	session *mgo.Session
+	databaseName string
+	session      *mgo.Session
 }
 
 // NewBlockDAO creates a new BlockDAO
-func NewBlockDAO(database dbConn) *BlockDAO {
+func NewBlockDAO(database dbName) *BlockDAO {
 	session, err := mgo.DialWithInfo(
 		&mgo.DialInfo{
 			Addrs:    dbHosts,
@@ -22,19 +23,73 @@ func NewBlockDAO(database dbConn) *BlockDAO {
 	if err != nil {
 		panic(err)
 	}
-	defer session.Close()
 
-	return &BlockDAO{session}
+	session.SetMode(mgo.Monotonic, true)
+
+	return &BlockDAO{
+		session:      session,
+		databaseName: string(database),
+	}
 }
 
 func (dao *BlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
-	panic("kek")
+	// reading may be slow, so open extra session here
+	session := dao.session.Clone()
+	defer session.Close()
+
+	collection := session.DB(dao.databaseName).C(blocks)
+
+	result := &insightjson.BlockResult{}
+
+	err := collection.FindId(hash.String()).One(result)
+	if err != nil {
+		return nil, err
+	}
+
+	err = result.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (dao *BlockDAO) Create(block *insightjson.BlockResult) error {
-	panic("kek")
+	// i guess no need in extra session
+	collection := dao.session.DB(dao.databaseName).C(blocks)
+
+	index := mgo.Index{
+		Key:    []string{"hash"},
+		Unique: true,
+	}
+
+	err := collection.EnsureIndex(index)
+	if err != nil {
+		return err
+	}
+
+	err = collection.Insert(block)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (dao *BlockDAO) Delete(hash chainhash.Hash) error {
-	panic("kek")
+	// maybe need to use this
+	// _, err := dao.Get(hash)
+	// if err != nil {
+	// 	// no block exists
+	// }
+
+	// i guess no need in extra session
+	// however it performs reading, idk
+	collection := dao.session.DB(dao.databaseName).C(blocks)
+	err := collection.RemoveId(hash)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

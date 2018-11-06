@@ -20,7 +20,7 @@ type BlockService struct {
 
 // NewBlockService creates a new BlockService with the given DAO.
 func NewBlockService(dao blockDAO) *BlockService {
-	return &BlockService{}
+	return &BlockService{dao}
 }
 
 func (b *BlockService) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
@@ -28,9 +28,22 @@ func (b *BlockService) Get(hash chainhash.Hash) (*insightjson.BlockResult, error
 }
 
 func (b *BlockService) Create(block *insightjson.BlockResult) error {
-	panic("implement me")
+	if err := block.Validate(); err != nil {
+		return err
+	}
+	if err := b.dao.Create(block); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (b *BlockService) Delete(hash chainhash.Hash) error {
-	panic("implement me")
+	_, err := b.dao.Get(hash)
+	if err != nil {
+		return err
+	}
+	err = b.dao.Delete(hash)
+
+	return err
 }

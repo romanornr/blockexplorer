@@ -3,9 +3,9 @@ package insight
 import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {

@@ -6,13 +6,13 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
-type BlockDAO struct {
+type MgoBlockDAO struct {
 	databaseName string
 	session      *mgo.Session
 }
 
-// NewBlockDAO creates a new BlockDAO
-func NewBlockDAO(database dbName) *BlockDAO {
+// NewBlockDAO creates a new MgoBlockDAO
+func NewBlockDAO(database dbName) *MgoBlockDAO {
 	session, err := mgo.DialWithInfo(
 		&mgo.DialInfo{
 			Addrs:    dbHosts,
@@ -26,13 +26,13 @@ func NewBlockDAO(database dbName) *BlockDAO {
 
 	session.SetMode(mgo.Monotonic, true)
 
-	return &BlockDAO{
+	return &MgoBlockDAO{
 		session:      session,
 		databaseName: string(database),
 	}
 }
 
-func (dao *BlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
+func (dao *MgoBlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
 	// reading may be slow, so open extra session here
 	session := dao.session.Clone()
 	defer session.Close()
@@ -54,7 +54,7 @@ func (dao *BlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) 
 	return result, nil
 }
 
-func (dao *BlockDAO) Create(block *insightjson.BlockResult) error {
+func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
 	// i guess no need in extra session
 	collection := dao.session.DB(dao.databaseName).C(blocks)
 
@@ -76,16 +76,9 @@ func (dao *BlockDAO) Create(block *insightjson.BlockResult) error {
 	return nil
 }
 
-func (dao *BlockDAO) Delete(hash chainhash.Hash) error {
-	// maybe need to use this
-	// _, err := dao.Get(hash)
-	// if err != nil {
-	// 	// no block exists
-	// }
-
-	// i guess no need in extra session
-	// however it performs reading, idk
+func (dao *MgoBlockDAO) Delete(hash chainhash.Hash) error {
 	collection := dao.session.DB(dao.databaseName).C(blocks)
+
 	err := collection.RemoveId(hash)
 	if err != nil {
 		return err

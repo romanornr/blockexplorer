@@ -23,27 +23,23 @@ func NewBlockService(dao blockDAO) *BlockService {
 	return &BlockService{dao}
 }
 
-func (b *BlockService) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
-	return b.dao.Get(hash)
+func (s *BlockService) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
+	return s.dao.Get(hash)
 }
 
-func (b *BlockService) Create(block *insightjson.BlockResult) error {
+func (s *BlockService) Create(block *insightjson.BlockResult) error {
 	if err := block.Validate(); err != nil {
 		return err
 	}
-	if err := b.dao.Create(block); err != nil {
-		return err
-	}
 
-	return nil
+	return s.dao.Create(block)
 }
 
-func (b *BlockService) Delete(hash chainhash.Hash) error {
-	_, err := b.dao.Get(hash)
+func (s *BlockService) Delete(hash chainhash.Hash) error {
+	_, err := s.dao.Get(hash)
 	if err != nil {
 		return err
 	}
-	err = b.dao.Delete(hash)
 
-	return err
+	return s.dao.Delete(hash)
 }

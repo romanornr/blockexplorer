@@ -50,3 +50,7 @@ type ScriptSig struct {
 	Hex string `json:"hex,omitempty"`
 	Asm string `json:"asm,omitempty"`
 }
+
+func (tx *Tx) Validate() error {
+	return nil
+}

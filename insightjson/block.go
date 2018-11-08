@@ -16,4 +16,11 @@ type BlockResult struct {
 	NextBlockHash      string   `json:"nextblockhash,omitempty"`
 	//Reward        float64  `json:"reward"`
 	IsMainChain   bool     `json:"isMainChain"`
+	PoolInfo 	  *Pools `json:"poolInfo"`
+}
+
+type Pools []struct{
+	PoolName      string   `json:"poolName"`
+	URL           string   `json:"url"`
+	SearchStrings []string `json:"searchStrings"`
 }

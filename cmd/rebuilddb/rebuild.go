@@ -7,11 +7,41 @@ import (
 	"gopkg.in/cheggaaa/pb.v2"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"encoding/hex"
+	"log"
+	"io/ioutil"
+	"encoding/json"
+	"github.com/romanornr/cyberchain/insightjson"
+	"strings"
+	"github.com/go-errors/errors"
 )
 
 //var db = database.GetDatabaseInstance()
 
 var db = mongodb.GetSession()
+
+
+func init() {
+	ParseJson()
+}
+
+//type Pools []struct{
+//	PoolName      string   `json:"poolName"`
+//	URL           string   `json:"url"`
+//	SearchStrings []string `json:"searchStrings"`
+//}
+
+var pools insightjson.Pools
+
+// read and parse the json file and unmarshal
+func ParseJson() {
+	jsonFile, err := ioutil.ReadFile("../../pools.json")
+	if err != nil {
+		panic(err)
+	}
+	json.Unmarshal([]byte(jsonFile), &pools)
+}
+
 
 /*  THIS WAS IN BBOLT/BOLTDB
 	note: 2000 blocks costs currently 8.4 MB and ~39 seconds to save. Running into performance issues.
@@ -28,12 +58,24 @@ var db = mongodb.GetSession()
 	200 blocks with tx and a goroutine cost 2.56 seconds
  */
 func BuildDatabase() {
-	end := 	3673+5
+	//end := 	3673+5
+	end := 200
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i ++ {
 		blockhash := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
 		newBlock,_ := insight.ConvertToInsightBlock(block)
+
+		txs := GetTx(block)
+
+		//add pool info to block before adding into mongodb
+		coinbaseText := GetCoinbaseText(txs[0])
+		pool, _ := getPoolInfo(coinbaseText)
+	//	if err == nil {
+	//		fmt.Println(newBlock.Hash)
+			newBlock.PoolInfo = &pool
+	//	}
+
 		mongodb.AddBlock(newBlock)
 
 		go AddTx(block)
@@ -43,6 +85,50 @@ func BuildDatabase() {
 	}
 	progressBar.Finish()
 }
+
+
+// get coinbase hex string by getting the first transaction of the block
+// in the tx.Vin[0] and decode the hex string into a normal text
+// Example: "52062f503253482f04dee0c7530807ffffff010000000d2f6e6f64655374726174756d2f" -> /nodeStratum/
+func GetCoinbaseText(tx *btcjson.TxRawResult) string {
+	src := []byte(tx.Vin[0].Coinbase)
+
+	dst := make([]byte, hex.DecodedLen(len(src)))
+	n, err := hex.Decode(dst, src)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(dst[:n])
+}
+
+// range over all pools and within that range over all search strings
+// check if a poolSearchString matches the coinbase text
+func getPoolInfo(coinbaseText string) (insightjson.Pools, error) {
+	var blockMinedByPool insightjson.Pools
+
+	for _, pool := range pools {
+		for _, PoolSearchString := range pool.SearchStrings {
+			if strings.Contains(coinbaseText, PoolSearchString) {
+				blockMinedByPool = append(blockMinedByPool, pool)
+				return blockMinedByPool, nil
+			}
+		}
+	}
+	return blockMinedByPool, errors.New("PoolSearchStrings did not match coinbase text. Unknown mining pool or solo miner")
+}
+
+func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
+	Transactions := []*btcjson.TxRawResult{}
+	for i := 0; i < len(block.Tx); i++ {
+		txhash, _ := chainhash.NewHashFromStr(block.Tx[i])
+		tx := blockdata.GetRawTransactionVerbose(txhash)
+		Transactions = append(Transactions, tx)
+	}
+
+	return Transactions
+}
+
 
 func AddTx(block *btcjson.GetBlockVerboseResult) {
 	for j := 0; j < len(block.Tx); j++ {

@@ -19,8 +19,8 @@ type BlockResult struct {
 	PoolInfo 	  *Pools `json:"poolInfo"`
 }
 
-type Pools []struct{
+type Pools struct{
 	PoolName      string   `json:"poolName"`
 	URL           string   `json:"url"`
-	SearchStrings []string `json:"searchStrings"`
+	SearchStrings []string `json:"searchStrings,omitempty"`
 }

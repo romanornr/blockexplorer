@@ -25,13 +25,13 @@ func init() {
 	ParseJson()
 }
 
-//type Pools []struct{
-//	PoolName      string   `json:"poolName"`
-//	URL           string   `json:"url"`
-//	SearchStrings []string `json:"searchStrings"`
-//}
+type Pools []struct{
+	PoolName      string   `json:"poolName"`
+	URL           string   `json:"url"`
+	SearchStrings []string `json:"searchStrings"`
+}
 
-var pools insightjson.Pools
+var pools Pools
 
 // read and parse the json file and unmarshal
 func ParseJson() {
@@ -66,15 +66,23 @@ func BuildDatabase() {
 		block, _ := blockdata.GetBlock(blockhash)
 		newBlock,_ := insight.ConvertToInsightBlock(block)
 
-		txs := GetTx(block)
+		//txs := GetTx(block)
 
 		//add pool info to block before adding into mongodb
-		coinbaseText := GetCoinbaseText(txs[0])
-		pool, _ := getPoolInfo(coinbaseText)
-	//	if err == nil {
-	//		fmt.Println(newBlock.Hash)
-			newBlock.PoolInfo = &pool
-	//	}
+		//coinbaseText := GetCoinbaseText(txs[0])
+		//pool, _ := getPoolInfo(coinbaseText)
+		//if err == nil {
+			//fmt.Printf("%v", pool)
+			//newBlock.PoolInfo = &pool
+		//}
+
+		// add bullshit poolInfo only to check if the poolInfo shows up
+		// Needs fix: http://127.0.0.1:8000/api/via/block/d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6
+		newBlock.PoolInfo = &insightjson.Pools{
+			"Reee",
+			"https://",
+			[]string{},
+		}
 
 		mongodb.AddBlock(newBlock)
 
@@ -110,7 +118,7 @@ func getPoolInfo(coinbaseText string) (insightjson.Pools, error) {
 	for _, pool := range pools {
 		for _, PoolSearchString := range pool.SearchStrings {
 			if strings.Contains(coinbaseText, PoolSearchString) {
-				blockMinedByPool = append(blockMinedByPool, pool)
+				//blockMinedByPool = append(blockMinedByPool, pool)
 				return blockMinedByPool, nil
 			}
 		}

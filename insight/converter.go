@@ -73,14 +73,13 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 				}
 				insightVin.ScriptSig.Hex = vin.ScriptSig.Hex
 			}
-
 		}
 
-		// address retrieval
+		// retrieval for vin[] to get addr and value // TODO What if there are multiple vins?
 		vinHash, _ := chainhash.NewHashFromStr(vin.Txid)
-		vinDbTx, err := mongodb.GetTransaction(*vinHash)  // NOTE TODO fix can't load package: import cycle not allowed
+		vinDbTx, err := mongodb.GetTransaction(*vinHash)
 		if err == nil {
-			if tx.Confirmations == 0 {
+			if tx.Confirmations != 0 {
 				amount := vinDbTx.Vouts[0].Value
 				insightVin.Value = amount
 			}
@@ -92,6 +91,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 
 		vInSum += insightVin.Value
 		txNew.Vins = append(txNew.Vins, insightVin)
+
 	}
 
 
@@ -133,8 +133,18 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 		}
 	}
 
+	//nospent
 	if !noSpent {
-		//todo
+		// TODO check https://explorer.viacoin.org/api/tx/99b5fa6e08c2d319dd68a16f781e72903a8e686f1c64dc1d11040490fbe81320 (call this txA)
+		// Check the Vout and you see a spentTxID 7ec15e6386f019f488cc8ea418be32ae968335b27e44fa2ba37c20cfebc56ab2 (call this txB)
+		// This is a transaction that happened after the current transaction that got processed.
+		// current tx (txA) from explorer.viacoin has blockheight 3673
+		// and txB happened at block 3674.
+
+		//So when we process txB we need to "update" txA
+		//txB->vin[0] has txA->txid as value
+		//txA->vout[0].SpentTxId has txB->txid
+		//txA->Spentheight has txB->blockheight
 	}
 
 	newTransaction = append(newTransaction, txNew)

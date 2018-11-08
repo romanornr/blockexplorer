@@ -3,6 +3,10 @@ package rebuilddb
 import (
 	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/insight"
+	"gopkg.in/cheggaaa/pb.v2"
+	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 //var db = database.GetDatabaseInstance()
@@ -19,12 +23,33 @@ var db = mongodb.GetSession()
 /*
 	MongoDB
 	2000 blocks without transactions cost 1.746 seconds
+	2000 blocks with transactions cost 3.275 seconds
+
+	200 blocks with tx and a goroutine cost 2.56 seconds
  */
 func BuildDatabase() {
-	for i := 1; i < 2000; i ++ {
+	end := 	3673+5
+	progressBar := pb.StartNew(end)
+	for i := 1; i < end; i ++ {
 		blockhash := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
-		mongodb.AddBlock(block)
+		newBlock,_ := insight.ConvertToInsightBlock(block)
+		mongodb.AddBlock(newBlock)
+
+		go AddTx(block)
+
+		progressBar.Increment()
+
+	}
+	progressBar.Finish()
+}
+
+func AddTx(block *btcjson.GetBlockVerboseResult) {
+	for j := 0; j < len(block.Tx); j++ {
+		txhash, _  := chainhash.NewHashFromStr(block.Tx[j])
+		tx := blockdata.GetRawTransactionVerbose(txhash)
+		newTx := insight.TxConverter(tx)
+		mongodb.AddTransaction(&newTx[0])
 	}
 }
 

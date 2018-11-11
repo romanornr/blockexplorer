@@ -55,7 +55,7 @@ func ParseJson() {
 	2000 blocks without transactions cost 1.746 seconds
 	2000 blocks with transactions cost 3.275 seconds
 
-	200 blocks with tx and a goroutine cost 2.56 seconds
+	2000 blocks with tx and a goroutine cost 2.56 seconds
  */
 func BuildDatabase() {
 	end := 	3673+5
@@ -75,17 +75,10 @@ func BuildDatabase() {
 			newBlock.PoolInfo = &pool
 		}
 
-		// add bullshit poolInfo only to check if the poolInfo shows up
-		// Needs fix: http://127.0.0.1:8000/api/via/block/d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6
-		//newBlock.PoolInfo = &insightjson.Pools{
-		//	"Reee",
-		//	"https://",
-		//	[]string{},
-		//}
-
 		mongodb.AddBlock(newBlock)
 
-		go AddTx(block)
+		//go AddTx(block)
+		go AddTransactions(txs)
 
 		progressBar.Increment()
 
@@ -137,12 +130,9 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 	return Transactions
 }
 
-
-func AddTx(block *btcjson.GetBlockVerboseResult) {
-	for j := 0; j < len(block.Tx); j++ {
-		txhash, _  := chainhash.NewHashFromStr(block.Tx[j])
-		tx := blockdata.GetRawTransactionVerbose(txhash)
-		newTx := insight.TxConverter(tx)
+func AddTransactions(transactions []*btcjson.TxRawResult)  {
+	for _, transaction := range transactions {
+		newTx := insight.TxConverter(transaction)
 		mongodb.AddTransaction(&newTx[0])
 	}
 }

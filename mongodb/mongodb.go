@@ -71,6 +71,21 @@ func AddBlock(Block *insightjson.BlockResult) error {
 	return err
 }
 
+// get block by hash
+func GetBlock(hash chainhash.Hash) (insightjson.BlockResult, error) {
+	GetSession()
+	collection := session.DB(Database).C("Blocks")
+
+	result := insightjson.BlockResult{}
+
+	err := collection.Find(bson.M{"hash": hash.String()}).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, err
+}
+
 // get block by blockheight
 func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
 	GetSession()

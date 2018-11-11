@@ -90,6 +90,26 @@ func TestAddBlock(t *testing.T) {
 	log.Printf("Success: Block with hash %s succesfully inserted & found", result.Hash)
 }
 
+func TestGetBlock(t *testing.T) {
+	log.Println("Searching for block with height 2")
+	result := insightjson.BlockResult{}
+
+	blockhash,_ := chainhash.NewHashFromStr("45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc")
+
+	c := session.DB(Database).C("Blocks")
+	err := c.Find(bson.M{"hash": blockhash.String()}).One(&result)
+	if err != nil {
+		panic(err)
+	}
+	expect := "45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc"
+
+	if result.Hash != expect {
+		t.Errorf("Expected: %s \nGot: %s\n", expect, result.Hash)
+	}
+
+	log.Printf("Success: Block with hash %s succesfully inserted & found", result.Hash)
+}
+
 func TestGetLastBlock(t *testing.T) {
 	latestblock, err := GetLastBlock()
 	if err != nil {

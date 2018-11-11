@@ -16,5 +16,5 @@ rpc:
 
 zmq:
   hashblock: tcp://127.0.0.1:2835
-  rawblock: tcp://127.0.0.1:28332
-  rawtx: tcp://127.0.0.1:28332
+  rawblock: tcp://127.0.0.1:3002
+  rawtx: tcp://127.0.0.1:3002

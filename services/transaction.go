@@ -32,6 +32,9 @@ func (s *TxService) Create(tx *insightjson.Tx) error {
 		return err
 	}
 
+	// Here check if any of vin are not coinbase
+	// if there are any, update existing tx
+
 	return s.dao.Create(tx)
 }
 

@@ -6,13 +6,13 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
-type MgoBlockDAO struct {
+type MgoAddrDAO struct {
 	databaseName string
 	session      *mgo.Session
 }
 
-// NewBlockDAO creates a new MgoBlockDAO
-func NewBlockDAO(database dbName) *MgoBlockDAO {
+// NewAddrDAO creates a new MgoBlockDAO
+func NewAddrDAO(database dbName) *MgoAddrDAO {
 	session, err := mgo.DialWithInfo(
 		&mgo.DialInfo{
 			Addrs:    dbHosts,
@@ -26,7 +26,7 @@ func NewBlockDAO(database dbName) *MgoBlockDAO {
 
 	session.SetMode(mgo.Monotonic, true)
 
-	return &MgoBlockDAO{
+	return &MgoAddrDAO{
 		session:      session,
 		databaseName: string(database),
 	}
@@ -34,18 +34,18 @@ func NewBlockDAO(database dbName) *MgoBlockDAO {
 
 // DropDatabase drops the entire database.
 // Use with caution, supposed to be used only in tests.
-func (dao *MgoBlockDAO) DropDatabase() error {
+func (dao *MgoAddrDAO) DropDatabase() error {
 	return dao.session.DB(dao.databaseName).DropDatabase()
 }
 
-func (dao *MgoBlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
+func (dao *MgoAddrDAO) Get(hash *chainhash.Hash) (*insightjson.Address, error) {
 	// reading may be slow, so open extra session here
 	session := dao.session.Clone()
 	defer session.Close()
 
-	collection := session.DB(dao.databaseName).C(blocks)
+	collection := session.DB(dao.databaseName).C(addr)
 
-	result := &insightjson.BlockResult{}
+	result := &insightjson.Address{}
 
 	err := collection.FindId(hash.String()).One(result)
 	if err != nil {
@@ -60,9 +60,9 @@ func (dao *MgoBlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, erro
 	return result, nil
 }
 
-func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
+func (dao *MgoAddrDAO) Create(address *insightjson.Address) error {
 	// i guess no need in extra session
-	collection := dao.session.DB(dao.databaseName).C(blocks)
+	collection := dao.session.DB(dao.databaseName).C(addr)
 
 	index := mgo.Index{
 		Key:    []string{"hash"},
@@ -74,7 +74,7 @@ func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
 		return err
 	}
 
-	err = collection.Insert(block)
+	err = collection.Insert(address)
 	if err != nil {
 		return err
 	}
@@ -82,10 +82,10 @@ func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
 	return nil
 }
 
-func (dao *MgoBlockDAO) Delete(hash chainhash.Hash) error {
-	collection := dao.session.DB(dao.databaseName).C(blocks)
+func (dao *MgoAddrDAO) Delete(hash *chainhash.Hash) error {
+	collection := dao.session.DB(dao.databaseName).C(addr)
 
-	err := collection.RemoveId(hash)
+	err := collection.RemoveId(hash.String())
 	if err != nil {
 		return err
 	}

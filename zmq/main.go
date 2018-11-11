@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	subscriber, err := goczmq.NewSub("tcp://127.0.0.1:28336", "hashblock")
+	subscriber, err := goczmq.NewSub("tcp://127.0.0.1:3002", "rawblock")
 	if err != nil {
 		log.Fatal(err)
 	}

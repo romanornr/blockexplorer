@@ -41,6 +41,10 @@ type AddressTxnOutput struct {
 type SendByFundingHash struct {
 	FundingTxVoutIndex uint32
 	SpendingTxVinIndex interface{}
-	SpendingTxHash interface{}
-	BlockHeight interface{}
+	SpendingTxHash     interface{}
+	BlockHeight        interface{}
+}
+
+func (addr *Address) Validate() error {
+	return nil
 }

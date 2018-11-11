@@ -1,7 +1,7 @@
 package insightjson
 
 type Tx struct {
-	Txid          string  `json:"txid,omitempty"`
+	Txid          string  `json:"txid,omitempty" bson:"_id"`
 	Version       int32   `json:"version,omitempty"`
 	Locktime      uint32  `json:"locktime"`
 	Vins          []*Vin  `json:"vin,omitempty"`

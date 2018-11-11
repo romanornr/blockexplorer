@@ -11,9 +11,14 @@ type dbName string
 
 const (
 	// Coin <~> Database
-	Via dbName = "viacoin"
-	Btc dbName = "Btc"
-	Ltc dbName = "litecoin"
+	Via     dbName = "viacoin"
+	ViaTest dbName = "viatest"
+
+	Btc     dbName = "Btc"
+	BtcTest dbName = "btctest"
+
+	Ltc     dbName = "litecoin"
+	LtcTest dbName = "ltctest"
 
 	// timeouts
 	timeout10 = 10 * time.Second
@@ -22,25 +27,5 @@ const (
 	// Collection names
 	txs    = "Txs"
 	blocks = "Blocks"
+	addr   = "Addresses"
 )
-
-// // Database dialing info
-// var (
-// 	viaDialInfo = &mgo.DialInfo{
-// 		Addrs:    dbHosts,
-// 		Timeout:  timeout10,
-// 		Database: Via,
-// 	}
-//
-// 	btcDialInfo = &mgo.DialInfo{
-// 		Addrs:    dbHosts,
-// 		Timeout:  timeout10,
-// 		Database: Btc,
-// 	}
-//
-// 	ltcDialInfo = &mgo.DialInfo{
-// 		Addrs:    dbHosts,
-// 		Timeout:  timeout10,
-// 		Database: Ltc,
-// 	}
-// )

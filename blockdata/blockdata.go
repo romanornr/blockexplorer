@@ -89,13 +89,13 @@ func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult {
 	return block
 }
 
-func GetRawTransactionVerbose(transactionHash *chainhash.Hash) *btcjson.TxRawResult {
+func GetRawTransactionVerbose(transactionHash *chainhash.Hash) (*btcjson.TxRawResult, error) {
 	rawtx, err := rpclient.GetRawTransactionVerbose(transactionHash)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Failed to get tx via rpc: %s", err)
 	}
 
-	return rawtx
+	return rawtx, err
 }
 
 func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx {

@@ -19,6 +19,7 @@ import (
 )
 
 var db = database.GetDatabaseInstance()
+var coin = viper.Get("coin.name")
 
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
@@ -46,10 +47,9 @@ func createRouter() *httprouter.Router {
 
 func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
-	coin := viper.Get("coin.name")
 	err := tpl.ExecuteTemplate(w, "index.gohtml", coin)
 	if err != nil {
-		log.Println("error")
+		log.Printf("Error executing template: %s", err)
 	}
 }
 
@@ -137,8 +137,14 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
 	txhash, _ := chainhash.NewHashFromStr(txid)
-	tx := blockdata.GetRawTransactionVerbose(txhash)
+	tx, err := blockdata.GetRawTransactionVerbose(txhash)
+	if err != nil {
+		err := tpl.ExecuteTemplate(w, "notfound.gohtml", coin)
+		if err != nil {
+			log.Printf("Error executing template: %s", err)
+		}
+		return
+	}
 	txnew := insight.TxConverter(tx)
 	json.NewEncoder(w).Encode(txnew[0])
-
 }

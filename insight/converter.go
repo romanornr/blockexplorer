@@ -2,10 +2,10 @@ package insight
 
 import (
 	"github.com/btcsuite/btcd/btcjson"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/mongodb"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
@@ -31,25 +31,25 @@ func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.B
 
 }
 
-func TxConverter(tx *btcjson.TxRawResult) ([]insightjson.Tx) {
+func TxConverter(tx *btcjson.TxRawResult) []insightjson.Tx {
 	return ConvertToInsightTransaction(tx, false, false, false)
 }
 
-//NOTE: Address retrieval and vin needs to be fixed
+// NOTE: Address retrieval and vin needs to be fixed
 func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, noSpent bool) []insightjson.Tx {
 
 	var newTransaction []insightjson.Tx
 
 	// TODO Blockheight
 	txNew := insightjson.Tx{
-		Txid: tx.Txid,
-		Version: tx.Version,
-		Locktime: tx.LockTime,
-		Blockhash: tx.BlockHash,
+		Txid:          tx.Txid,
+		Version:       tx.Version,
+		Locktime:      tx.LockTime,
+		Blockhash:     tx.BlockHash,
 		Confirmations: tx.Confirmations,
-		Time: tx.Time,
-		Blocktime: tx.Blocktime,
-		Size: uint32(len(tx.Hex) /2),
+		Time:          tx.Time,
+		Blocktime:     tx.Blocktime,
+		Size:          uint32(len(tx.Hex) / 2),
 	}
 
 	var vInSum, vOutSum float64
@@ -64,7 +64,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 			CoinBase: vin.Coinbase,
 		}
 
-		//scriptpubkey
+		// scriptpubkey
 		if !noScriptSig {
 			insightVin.ScriptSig = new(insightjson.ScriptSig)
 			if vin.ScriptSig != nil {
@@ -93,7 +93,6 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 		txNew.Vins = append(txNew.Vins, insightVin)
 
 	}
-
 
 	for _, v := range tx.Vout {
 		InsightVout := &insightjson.Vout{

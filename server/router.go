@@ -14,6 +14,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"github.com/romanornr/cyberchain/mongodb"
+	"fmt"
 )
 
 var db = database.GetDatabaseInstance()
@@ -89,18 +91,21 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	proxy := Blockchain.BlockListProxy{}
+	//proxy := Blockchain.BlockListProxy{}
+	//
+	//block, err := proxy.FindBlock(hash)
+	//if err != nil {
+	//	log.Printf("error finding block: %s", err)
+	//}
 
-	block, err := proxy.FindBlock(hash)
-	if err != nil {
-		log.Printf("error finding block: %s", err)
-	}
+	block,_ := mongodb.GetBlock(*hash)
+	fmt.Println(&block.Hash)
+	//block.Confirmations = getBlockConfirmations(block)
+	//block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
 
-	block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
+	//apiblock, err := insight.ConvertToInsightBlock(block)
 
-	apiblock, err := insight.ConvertToInsightBlock(block)
-
-	json.NewEncoder(w).Encode(&apiblock)
+	json.NewEncoder(w).Encode(&block)
 }
 
 // confirmations from blocks always change. Block confirmations can be calculated with the following method

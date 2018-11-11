@@ -58,31 +58,30 @@ func ParseJson() {
 	200 blocks with tx and a goroutine cost 2.56 seconds
  */
 func BuildDatabase() {
-	//end := 	3673+5
-	end := 200
+	end := 	3673+5
+	//end := 200
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i ++ {
 		blockhash := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
 		newBlock,_ := insight.ConvertToInsightBlock(block)
 
-		//txs := GetTx(block)
+		txs := GetTx(block)
 
 		//add pool info to block before adding into mongodb
-		//coinbaseText := GetCoinbaseText(txs[0])
-		//pool, _ := getPoolInfo(coinbaseText)
-		//if err == nil {
-			//fmt.Printf("%v", pool)
-			//newBlock.PoolInfo = &pool
-		//}
+		coinbaseText := GetCoinbaseText(txs[0])
+		pool, err := getPoolInfo(coinbaseText)
+		if err == nil {
+			newBlock.PoolInfo = &pool
+		}
 
 		// add bullshit poolInfo only to check if the poolInfo shows up
 		// Needs fix: http://127.0.0.1:8000/api/via/block/d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6
-		newBlock.PoolInfo = &insightjson.Pools{
-			"Reee",
-			"https://",
-			[]string{},
-		}
+		//newBlock.PoolInfo = &insightjson.Pools{
+		//	"Reee",
+		//	"https://",
+		//	[]string{},
+		//}
 
 		mongodb.AddBlock(newBlock)
 
@@ -118,7 +117,8 @@ func getPoolInfo(coinbaseText string) (insightjson.Pools, error) {
 	for _, pool := range pools {
 		for _, PoolSearchString := range pool.SearchStrings {
 			if strings.Contains(coinbaseText, PoolSearchString) {
-				//blockMinedByPool = append(blockMinedByPool, pool)
+				blockMinedByPool.PoolName = pool.PoolName
+				blockMinedByPool.URL = pool.URL
 				return blockMinedByPool, nil
 			}
 		}

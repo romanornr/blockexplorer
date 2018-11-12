@@ -62,7 +62,7 @@ func BuildDatabase() {
 	//end := 200
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i ++ {
-		blockhash := blockdata.GetBlockHash(int64(i))
+		blockhash, _ := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
 		newBlock,_ := insight.ConvertToInsightBlock(block)
 

@@ -123,7 +123,7 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 	Transactions := []*btcjson.TxRawResult{}
 	for i := 0; i < len(block.Tx); i++ {
 		txhash, _ := chainhash.NewHashFromStr(block.Tx[i])
-		tx := blockdata.GetRawTransactionVerbose(txhash)
+		tx, _ := blockdata.GetRawTransactionVerbose(txhash)
 		Transactions = append(Transactions, tx)
 	}
 

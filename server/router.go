@@ -6,7 +6,6 @@ import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
-	"github.com/romanornr/cyberchain/Blockchain"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
 	"github.com/romanornr/cyberchain/insight"
@@ -70,7 +69,7 @@ func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 	// blockheight - 1 in the loop. Get the blockhash from the height
 	for i := 0; i < 10; i++ {
 		prevBlock := blockCount - int64(i)
-		hash := blockdata.GetBlockHash(prevBlock)
+		hash, _ := blockdata.GetBlockHash(prevBlock)
 
 		block, err := blockdata.GetBlock(hash)
 		if err != nil {
@@ -128,8 +127,12 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 		log.Println("could not convert height to int64")
 	}
 
-	proxy := Blockchain.BlockListProxy{}
-	blockIndex := proxy.FindBlockHash(int64(blockheight))
+	//proxy := Blockchain.BlockListProxy{}
+	//blockIndex := proxy.FindBlockHash(int64(blockheight))
+	blockIndex, err := blockdata.GetBlockHash(int64(blockheight))
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+	}
 
 	json.NewEncoder(w).Encode(blockIndex)
 }
@@ -139,12 +142,9 @@ func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Para
 	txhash, _ := chainhash.NewHashFromStr(txid)
 	tx, err := blockdata.GetRawTransactionVerbose(txhash)
 	if err != nil {
-		err := tpl.ExecuteTemplate(w, "notfound.gohtml", coin)
-		if err != nil {
-			log.Printf("Error executing template: %s", err)
-		}
-		return
+		fmt.Fprintf(w, "Not found")
 	}
+	return
 	txnew := insight.TxConverter(tx)
 	json.NewEncoder(w).Encode(txnew[0])
 }

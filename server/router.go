@@ -97,8 +97,11 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	//	log.Printf("error finding block: %s", err)
 	//}
 
-	block,_ := mongodb.GetBlock(*hash)
-	fmt.Println(&block.Hash)
+	block, err := mongodb.GetBlock(*hash)
+	if err != nil {
+		fmt.Fprintf(w, "Not found")
+		return
+	}
 	//block.Confirmations = getBlockConfirmations(block)
 	//block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
 

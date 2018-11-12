@@ -5,15 +5,16 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
-const baseSubsidy = 50 * btcutil.SatoshiPerBitcoin
+const viacoinBaseSubsidy = 50 * btcutil.SatoshiPerBitcoin
 
-func CalcViacoinBlockSubsidy(height int32, chainParams *chaincfg.Params) int64{
+func CalcViacoinBlockSubsidy(height int32, chainParams *chaincfg.Params) int64 {
+
 	if chainParams.GenerateSupported { //regtest: use bitcoin schedule
 		if chainParams.SubsidyReductionInterval == 0 {
-			return baseSubsidy
+			return viacoinBaseSubsidy
 		}
 		// Equivalent to: baseSubsidy / 2^(height/subsidyHalvingInterval)
-		return baseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
+		return viacoinBaseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
 	}
 
 	// Viacoin schedule
@@ -30,6 +31,8 @@ func CalcViacoinBlockSubsidy(height int32, chainParams *chaincfg.Params) int64{
 		subsidy = 0
 	} else if height == 1 {
 		subsidy = 10000000 * btcutil.SatoshiPerBitcoin
+	}else if height <= zeroRewardHeight {
+		subsidy = 0
 	} else if height <= zeroRewardHeight + 10800 {
 		// first 10800 block after zero reward period is 10 coins per block
 		subsidy = 10 * btcutil.SatoshiPerBitcoin
@@ -45,5 +48,5 @@ func CalcViacoinBlockSubsidy(height int32, chainParams *chaincfg.Params) int64{
 			subsidy >>= halvings
 		}
 	}
-	return subsidy
+	return subsidy // in satoshi
 }

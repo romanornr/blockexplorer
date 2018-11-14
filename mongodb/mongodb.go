@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"log"
 )
 
@@ -20,7 +20,7 @@ var session *mgo.Session
 
 var mongoDBDialInfo = &mgo.DialInfo{
 	Addrs:    []string{MongoDBHosts},
-	Timeout: 60 * time.Second,
+	Timeout:  60 * time.Second,
 	Database: Database,
 }
 
@@ -92,7 +92,7 @@ func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
 	collection := session.DB(Database).C("Blocks")
 	result := insightjson.BlockResult{}
 
-	err := collection.Find(bson.M{ "height": blockheight}).One(&result)
+	err := collection.Find(bson.M{"height": blockheight}).One(&result)
 	if err != nil {
 		panic(err)
 	}
@@ -111,8 +111,7 @@ func GetLastBlock() (insightjson.BlockResult, error) {
 		return result, err
 	}
 
-
-	err = collection.Find(nil).Skip(dbSize-1).One(&result)
+	err = collection.Find(nil).Skip(dbSize - 1).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -125,7 +124,7 @@ func AddTransaction(transaction *insightjson.Tx) error {
 	collection := session.DB(Database).C("Transactions")
 
 	index := mgo.Index{
-		Key: []string{"txid"},
+		Key:    []string{"txid"},
 		Unique: true,
 	}
 

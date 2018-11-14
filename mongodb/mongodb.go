@@ -8,6 +8,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"log"
 )
 
 const (
@@ -45,7 +46,6 @@ func DropDatabase() error {
 }
 
 // add Blocks to the database. Collection name: Blocks
-// NEED FIX: DOES NOT ERROR WHEN INSERTING EXISTING KEY :S
 func AddBlock(Block *insightjson.BlockResult) error {
 	GetSession()
 	//defer session.Close()
@@ -150,6 +150,33 @@ func GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
 	result := insightjson.Tx{}
 
 	err := collection.Find(bson.M{"txid": txid.String()}).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, err
+}
+
+func AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
+	GetSession()
+	collection := session.DB(Database).C("AddressInfo")
+
+	err := collection.Insert(AddressInfo)
+
+	if err != nil {
+		log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
+	}
+
+	return err
+}
+
+func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
+	GetSession()
+	collection := session.DB(Database).C("AddressInfo")
+
+	result := insightjson.AddressInfo{}
+
+	err := collection.Find(bson.M{"address": address}).One(&result)
 	if err != nil {
 		return result, err
 	}

@@ -197,3 +197,31 @@ func TestGetTransaction(t *testing.T) {
 
 	log.Printf("Success: Transaction in database found with hash: %s", tx.Txid)
 }
+
+func TestAddAddressInfo(t *testing.T) {
+	addressInfo := insightjson.AddressInfo{
+		"VmLNtooUmxwzYuwhf3Ha7hkNqhqZwsNEyw",
+		200000,
+		200000000000000,
+		200000,
+		200000000000000,
+		0,
+		0,
+		0,
+		0,
+		1,
+		1,
+		[]string{"b5a52fb0f0ca4780ee694fdc54e288948a3492c0a66c9edd1d798c1efd0696f8"},
+	}
+
+	AddAddressInfo(&addressInfo)
+
+	info, err := GetAddressInfo(addressInfo.Address)
+	if err != nil {
+		t.Errorf("Address info for address %s not found in database", addressInfo.Address)
+	}
+
+	if info.Address == addressInfo.Address {
+		t.Logf("Success: address %s found in database", addressInfo.Address)
+	}
+}

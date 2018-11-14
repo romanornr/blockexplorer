@@ -31,12 +31,12 @@ func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.B
 
 }
 
-func TxConverter(tx *btcjson.TxRawResult) []insightjson.Tx {
-	return ConvertToInsightTransaction(tx, false, false, false)
+func TxConverter(tx *btcjson.TxRawResult, blockheight int64) []insightjson.Tx {
+	return ConvertToInsightTransaction(tx, blockheight, false, false, false)
 }
 
 // NOTE: Address retrieval and vin needs to be fixed
-func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, noSpent bool) []insightjson.Tx {
+func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noAsm, noScriptSig, noSpent bool) []insightjson.Tx {
 
 	var newTransaction []insightjson.Tx
 
@@ -46,6 +46,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 		Version:       tx.Version,
 		Locktime:      tx.LockTime,
 		Blockhash:     tx.BlockHash,
+		Blockheight:   blockheight,
 		Confirmations: tx.Confirmations,
 		Time:          tx.Time,
 		Blocktime:     tx.Blocktime,

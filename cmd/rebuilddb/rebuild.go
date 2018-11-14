@@ -97,7 +97,7 @@ func BuildDatabase() {
 		mongodb.AddBlock(newBlock)
 
 		//go AddTx(block)
-		go AddTransactions(txs)
+		go AddTransactions(txs, newBlock.Height)
 
 		progressBar.Increment()
 
@@ -149,9 +149,9 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 	return Transactions
 }
 
-func AddTransactions(transactions []*btcjson.TxRawResult)  {
+func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64)  {
 	for _, transaction := range transactions {
-		newTx := insight.TxConverter(transaction)
+		newTx := insight.TxConverter(transaction, blockheight)
 		mongodb.AddTransaction(&newTx[0])
 	}
 }

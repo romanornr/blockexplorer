@@ -2,14 +2,13 @@ package subsidy
 
 import (
 	"testing"
-	"github.com/viacoin/viad/chaincfg"
 )
 
 func TestCalcViacoinBlockSubsidy(t *testing.T) {
-	valueOut := CalcViacoinBlockSubsidy(5647748, &chaincfg.MainNetParams)
-	if valueOut != 7812500 {
-		t.Errorf("Error value out. Expected: 7812500 expected: %d", valueOut)
+	valueOut := CalcViacoinBlockSubsidy(5647748, true)
+	if valueOut != 0.078125 {
+		t.Errorf("Error value out. Expected: 0.078125 Got: %f", valueOut)
 	}else {
-		t.Logf("Success: blockheight 5647748 got valueOut %d", valueOut)
+		t.Logf("Success: blockheight 5647748 got valueOut: %f", valueOut)
 	}
 }

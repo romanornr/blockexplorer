@@ -46,6 +46,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:49ad1acb33bb5b40c0d197321d3cf9ee9a29eb02f4765ab7c316e08983eb7559"
+  name = "github.com/btcsuite/golangcrypto"
+  packages = ["ripemd160"]
+  pruneopts = "UT"
+  revision = "53f62d9b43e87a6c56975cf862af7edf33a8d0df"
+
+[[projects]]
+  branch = "master"
   digest = "1:0b2242fd2f4f51fb491e97e204464f75da680897a0db10ec7554c87b71b5afc3"
   name = "github.com/btcsuite/websocket"
   packages = ["."]
@@ -202,15 +210,31 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2c9dc2241784d54abe8977bcfecf23d15b78832add5f34ef09cc234471d4da1c"
+  digest = "1:4aa9c9fc24389840a12d33646e39d60c15b2d9699d71002609d674b4251a823a"
   name = "github.com/viacoin/viad"
   packages = [
+    "blockchain",
+    "btcec",
     "chaincfg",
     "chaincfg/chainhash",
+    "database",
+    "txscript",
     "wire",
   ]
   pruneopts = "UT"
   revision = "65fc0aa9fc9238d39504ca7fbbf6fc96900b136b"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e6ba611438f387130d1650f492614d6532460e401f22af36b5458dc2c12e1893"
+  name = "github.com/viacoin/viautil"
+  packages = [
+    ".",
+    "base58",
+    "bech32",
+  ]
+  pruneopts = "UT"
+  revision = "ed9ec48290bc085ae179946a14675bf2249fc718"
 
 [[projects]]
   digest = "1:2684f31e46097676f85dadf62e4c725a79c3e23de3fa5208c720c1fbce26f884"
@@ -328,6 +352,7 @@
     "github.com/go-errors/errors",
     "github.com/julienschmidt/httprouter",
     "github.com/spf13/viper",
+    "github.com/viacoin/viad/blockchain",
     "github.com/viacoin/viad/chaincfg",
     "github.com/zeromq/goczmq",
     "gopkg.in/cheggaaa/pb.v2",

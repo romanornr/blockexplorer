@@ -10,15 +10,13 @@ import (
 
 // blocksubsidy for Viacoin
 func CalcViacoinBlockSubsidy(height int32, isMainChain bool) float64 {
-
 	var rewardInSatoshi int64
 
 	if !isMainChain {
 		rewardInSatoshi = blockchain.CalcBlockSubsidy(height, &chaincfg.TestNet3Params)
-	} else {
-		rewardInSatoshi = blockchain.CalcBlockSubsidy(height, &chaincfg.MainNetParams)
+		return btcutil.Amount(rewardInSatoshi).ToBTC()
 	}
 
-	reward := btcutil.Amount(rewardInSatoshi)
-	return reward.ToBTC()
+	rewardInSatoshi = blockchain.CalcBlockSubsidy(height, &chaincfg.MainNetParams)
+	return btcutil.Amount(rewardInSatoshi).ToBTC()
 }

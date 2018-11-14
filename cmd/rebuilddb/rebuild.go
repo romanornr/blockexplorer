@@ -14,15 +14,30 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 	"strings"
 	"github.com/go-errors/errors"
+	"github.com/romanornr/cyberchain/subsidy"
 )
 
 //var db = database.GetDatabaseInstance()
 
 var db = mongodb.GetSession()
-
+var isMainChain bool
 
 func init() {
 	ParseJson()
+	IsMainChain()
+}
+
+func IsMainChain() {
+	blockchainInfo, err := blockdata.GetBlockChainInfo()
+	if err != nil {
+		log.Fatalf("Error getting Blockchaininfo via RPC: %s", err)
+	}
+
+	if blockchainInfo.Chain != "main" {
+		isMainChain = false
+	}
+
+	isMainChain = true
 }
 
 type Pools []struct{
@@ -74,6 +89,10 @@ func BuildDatabase() {
 		if err == nil {
 			newBlock.PoolInfo = &pool
 		}
+
+		//add reward info
+		newBlock.Reward = subsidy.CalcViacoinBlockSubsidy(int32(newBlock.Height), isMainChain)
+		newBlock.IsMainChain = isMainChain
 
 		mongodb.AddBlock(newBlock)
 

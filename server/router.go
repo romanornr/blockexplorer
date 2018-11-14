@@ -8,7 +8,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"github.com/romanornr/cyberchain/insight"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -143,11 +142,11 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
 	txhash, _ := chainhash.NewHashFromStr(txid)
-	tx, err := blockdata.GetRawTransactionVerbose(txhash)
+
+	tx, err := mongodb.GetTransaction(*txhash)
 	if err != nil {
 		fmt.Fprintf(w, "Not found")
+		return
 	}
-	return
-	txnew := insight.TxConverter(tx)
-	json.NewEncoder(w).Encode(txnew[0])
+	json.NewEncoder(w).Encode(tx)
 }

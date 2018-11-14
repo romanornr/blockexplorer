@@ -80,8 +80,10 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, noAsm, noScriptSig, no
 		vinDbTx, err := mongodb.GetTransaction(*vinHash)
 		if err == nil {
 			if tx.Confirmations != 0 {
-				amount := vinDbTx.Vouts[0].Value
-				insightVin.Value = amount
+				//assign the last vout value for insightVin.Value
+				for _, vout := range vinDbTx.Vouts {
+					insightVin.Value = vout.Value
+				}
 			}
 			insightVin.Addr = vinDbTx.Vouts[0].ScriptPubKey.Addresses[0]
 		}

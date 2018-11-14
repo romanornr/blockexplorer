@@ -41,6 +41,6 @@ type AddressTxnOutput struct {
 type SendByFundingHash struct {
 	FundingTxVoutIndex uint32
 	SpendingTxVinIndex interface{}
-	SpendingTxHash interface{}
-	BlockHeight interface{}
+	SpendingTxHash     interface{}
+	BlockHeight        interface{}
 }

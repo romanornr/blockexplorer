@@ -8,7 +8,7 @@ type Tx struct {
 	Vouts         []*Vout `json:"vout,omitempty"`
 	Blockhash     string  `json:"blockhash,omitempty"`
 	Blockheight   int64   `json:"blockheight"`
-	Confirmations uint64  `json:"confirmations"`
+	Confirmations uint64  `json:"confirmations"` //TODO needs realtime calculation
 	Time          int64   `json:"time,omitempty"`
 	Blocktime     int64   `json:"blocktime,omitempty"`
 	IsCoinBase    bool    `json:"isCoinBase,omitempty"`

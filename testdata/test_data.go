@@ -4,7 +4,7 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
-// Test transactions
+// Test transactions.
 var (
 	TxBlock5421176Insight = &insightjson.Tx{
 		Txid:     "31c0cbc8411de76eac6018183e96d1cc2c904a9b50096758041eec92d9c9b9f9",
@@ -66,7 +66,7 @@ var (
 	}
 )
 
-// Test transactions
+// Test addresses.
 var (
 	AddrStdVlav = &insightjson.Address{
 		Address: "Vxs7pdwf4XWt1MMKedMhewH9dCbwonFLav",

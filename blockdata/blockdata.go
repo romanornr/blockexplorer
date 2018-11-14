@@ -19,12 +19,9 @@ func GetBlockCount() int64 {
 	return c
 }
 
-func GetBlockHash(blockHeight int64) *chainhash.Hash {
-	h, err := rpclient.GetBlockHash(blockHeight)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return h
+func GetBlockHash(blockHeight int64) (*chainhash.Hash, error) {
+	blockhash, err := rpclient.GetBlockHash(blockHeight)
+	return blockhash, err
 }
 
 func GetBlockHashAsync(blockHeight int64) *chainhash.Hash {
@@ -38,9 +35,6 @@ func GetBlockHashAsync(blockHeight int64) *chainhash.Hash {
 func GetBlock(blockhash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
 	// block, err := rpclient.GetBlockVerboseTx(blockhash)
 	block, err := rpclient.GetBlockVerbose(blockhash)
-	// if err != nil {
-	// 	log.Fatalf("Block with hash: %s: %s\n", blockhash.String(), err)
-	// }
 	return block, err
 }
 
@@ -89,13 +83,9 @@ func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult {
 	return block
 }
 
-func GetRawTransactionVerbose(transactionHash *chainhash.Hash) *btcjson.TxRawResult {
+func GetRawTransactionVerbose(transactionHash *chainhash.Hash) (*btcjson.TxRawResult, error) {
 	rawtx, err := rpclient.GetRawTransactionVerbose(transactionHash)
-	if err != nil {
-		log.Println(err)
-	}
-
-	return rawtx
+	return rawtx, err
 }
 
 func GetRawTransaction(transactionHash *chainhash.Hash) *btcutil.Tx {
@@ -127,4 +117,10 @@ func SearchRawTransactionsVerbose(address btcutil.Address, skip, count int, reve
 		log.Printf("Search raw tx error: %s", err)
 	}
 	return tx
+}
+
+
+func GetBlockChainInfo() (*btcjson.GetBlockChainInfoResult, error) {
+	result, err := rpclient.GetBlockChainInfo()
+	return result, err
 }

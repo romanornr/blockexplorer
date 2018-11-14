@@ -6,17 +6,18 @@ import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
-	"github.com/romanornr/cyberchain/Blockchain"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"github.com/romanornr/cyberchain/insight"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"strconv"
+	"github.com/romanornr/cyberchain/mongodb"
+	"fmt"
 )
 
 var db = database.GetDatabaseInstance()
+var coin = viper.Get("coin.name")
 
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
@@ -44,10 +45,9 @@ func createRouter() *httprouter.Router {
 
 func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
-	coin := viper.Get("coin.name")
 	err := tpl.ExecuteTemplate(w, "index.gohtml", coin)
 	if err != nil {
-		log.Println("error")
+		log.Printf("Error executing template: %s", err)
 	}
 }
 
@@ -68,7 +68,7 @@ func getLatestBlocks(w http.ResponseWriter, req *http.Request, _ httprouter.Para
 	// blockheight - 1 in the loop. Get the blockhash from the height
 	for i := 0; i < 10; i++ {
 		prevBlock := blockCount - int64(i)
-		hash := blockdata.GetBlockHash(prevBlock)
+		hash, _ := blockdata.GetBlockHash(prevBlock)
 
 		block, err := blockdata.GetBlock(hash)
 		if err != nil {
@@ -89,18 +89,24 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	proxy := Blockchain.BlockListProxy{}
+	//proxy := Blockchain.BlockListProxy{}
+	//
+	//block, err := proxy.FindBlock(hash)
+	//if err != nil {
+	//	log.Printf("error finding block: %s", err)
+	//}
 
-	block, err := proxy.FindBlock(hash)
+	block, err := mongodb.GetBlock(*hash)
 	if err != nil {
-		log.Printf("error finding block: %s", err)
+		fmt.Fprintf(w, "Not found")
+		return
 	}
+	//block.Confirmations = getBlockConfirmations(block)
+	//block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
 
-	block.Confirmations = getBlockConfirmations(*block) // needs dynamic calculation
+	//apiblock, err := insight.ConvertToInsightBlock(block)
 
-	apiblock, err := insight.ConvertToInsightBlock(block)
-
-	json.NewEncoder(w).Encode(&apiblock)
+	json.NewEncoder(w).Encode(&block)
 }
 
 // confirmations from blocks always change. Block confirmations can be calculated with the following method
@@ -123,8 +129,12 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 		log.Println("could not convert height to int64")
 	}
 
-	proxy := Blockchain.BlockListProxy{}
-	blockIndex := proxy.FindBlockHash(int64(blockheight))
+	//proxy := Blockchain.BlockListProxy{}
+	//blockIndex := proxy.FindBlockHash(int64(blockheight))
+	blockIndex, err := blockdata.GetBlockHash(int64(blockheight))
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+	}
 
 	json.NewEncoder(w).Encode(blockIndex)
 }
@@ -132,8 +142,11 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	txid := ps.ByName("txid")
 	txhash, _ := chainhash.NewHashFromStr(txid)
-	tx := blockdata.GetRawTransactionVerbose(txhash)
-	txnew := insight.TxConverter(tx)
-	json.NewEncoder(w).Encode(txnew[0])
 
+	tx, err := mongodb.GetTransaction(*txhash)
+	if err != nil {
+		fmt.Fprintf(w, "Not found")
+		return
+	}
+	json.NewEncoder(w).Encode(tx)
 }

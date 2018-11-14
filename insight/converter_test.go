@@ -15,7 +15,7 @@ func TestConvertToInsightTransaction(t *testing.T) {
 	hash, _ := chainhash.NewHashFromStr(xx.Tx[0])
 
 	tx := blockdata.GetRawTransactionVerbose(hash)
-	result := ConvertToInsightTransaction(tx)
+	result := ConvertToInsightTransaction(tx, false, false, false)
 	fmt.Println(result)
 }
 

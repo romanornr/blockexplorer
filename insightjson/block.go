@@ -14,9 +14,9 @@ type BlockResult struct {
 	Confirmations     int64    `json:"confirmations"`
 	PreviousBlockHash string   `json:"previousblockhash"`
 	NextBlockHash     string   `json:"nextblockhash,omitempty"`
-	//Reward        float64  `json:"reward"`
-	IsMainChain bool `json:"isMainChain"`
-  PoolInfo 	  *Pools `json:"poolInfo"`
+	Reward            float64  `json:"reward"`
+	IsMainChain       bool     `json:"isMainChain"`
+	PoolInfo          *Pools   `json:"poolInfo"`
 }
 
 // TODO: implement block validation method
@@ -26,6 +26,6 @@ func (b *BlockResult) Validate() error {
 
 type Pools struct {
 	PoolName      string   `json:"poolName"`
-	URL           string   `json:"url"`
+	URL           string   `json:"url,omitempty"`
 	SearchStrings []string `json:"searchStrings,omitempty"`
 }

@@ -14,15 +14,30 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 	"strings"
 	"github.com/go-errors/errors"
+	"github.com/romanornr/cyberchain/subsidy"
 )
 
 //var db = database.GetDatabaseInstance()
 
 var db = mongodb.GetSession()
-
+var isMainChain bool
 
 func init() {
 	ParseJson()
+	IsMainChain()
+}
+
+func IsMainChain() {
+	blockchainInfo, err := blockdata.GetBlockChainInfo()
+	if err != nil {
+		log.Fatalf("Error getting Blockchaininfo via RPC: %s", err)
+	}
+
+	if blockchainInfo.Chain != "main" {
+		isMainChain = false
+	}
+
+	isMainChain = true
 }
 
 type Pools []struct{
@@ -55,38 +70,34 @@ func ParseJson() {
 	2000 blocks without transactions cost 1.746 seconds
 	2000 blocks with transactions cost 3.275 seconds
 
-	200 blocks with tx and a goroutine cost 2.56 seconds
+	2000 blocks with tx and a goroutine cost 2.56 seconds
  */
 func BuildDatabase() {
-	//end := 	3673+5
-	end := 200
+	end := 	3673+5
+	//end := 200
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i ++ {
-		blockhash := blockdata.GetBlockHash(int64(i))
+		blockhash, _ := blockdata.GetBlockHash(int64(i))
 		block, _ := blockdata.GetBlock(blockhash)
 		newBlock,_ := insight.ConvertToInsightBlock(block)
 
-		//txs := GetTx(block)
+		txs := GetTx(block)
 
 		//add pool info to block before adding into mongodb
-		//coinbaseText := GetCoinbaseText(txs[0])
-		//pool, _ := getPoolInfo(coinbaseText)
-		//if err == nil {
-			//fmt.Printf("%v", pool)
-			//newBlock.PoolInfo = &pool
-		//}
-
-		// add bullshit poolInfo only to check if the poolInfo shows up
-		// Needs fix: http://127.0.0.1:8000/api/via/block/d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6
-		newBlock.PoolInfo = &insightjson.Pools{
-			"Reee",
-			"https://",
-			[]string{},
+		coinbaseText := GetCoinbaseText(txs[0])
+		pool, err := getPoolInfo(coinbaseText)
+		if err == nil {
+			newBlock.PoolInfo = &pool
 		}
+
+		//add reward info
+		newBlock.Reward = subsidy.CalcViacoinBlockSubsidy(int32(newBlock.Height), isMainChain)
+		newBlock.IsMainChain = isMainChain
 
 		mongodb.AddBlock(newBlock)
 
-		go AddTx(block)
+		//go AddTx(block)
+		go AddTransactions(txs, newBlock.Height)
 
 		progressBar.Increment()
 
@@ -118,7 +129,8 @@ func getPoolInfo(coinbaseText string) (insightjson.Pools, error) {
 	for _, pool := range pools {
 		for _, PoolSearchString := range pool.SearchStrings {
 			if strings.Contains(coinbaseText, PoolSearchString) {
-				//blockMinedByPool = append(blockMinedByPool, pool)
+				blockMinedByPool.PoolName = pool.PoolName
+				blockMinedByPool.URL = pool.URL
 				return blockMinedByPool, nil
 			}
 		}
@@ -130,19 +142,16 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 	Transactions := []*btcjson.TxRawResult{}
 	for i := 0; i < len(block.Tx); i++ {
 		txhash, _ := chainhash.NewHashFromStr(block.Tx[i])
-		tx := blockdata.GetRawTransactionVerbose(txhash)
+		tx, _ := blockdata.GetRawTransactionVerbose(txhash)
 		Transactions = append(Transactions, tx)
 	}
 
 	return Transactions
 }
 
-
-func AddTx(block *btcjson.GetBlockVerboseResult) {
-	for j := 0; j < len(block.Tx); j++ {
-		txhash, _  := chainhash.NewHashFromStr(block.Tx[j])
-		tx := blockdata.GetRawTransactionVerbose(txhash)
-		newTx := insight.TxConverter(tx)
+func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64)  {
+	for _, transaction := range transactions {
+		newTx := insight.TxConverter(transaction, blockheight)
 		mongodb.AddTransaction(&newTx[0])
 	}
 }

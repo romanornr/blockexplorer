@@ -198,21 +198,22 @@ func TestGetTransaction(t *testing.T) {
 	log.Printf("Success: Transaction in database found with hash: %s", tx.Txid)
 }
 
+var addressInfo = insightjson.AddressInfo{
+	"VmLNtooUmxwzYuwhf3Ha7hkNqhqZwsNEyw",
+	215,
+	21500000000,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	1,
+	1,
+	[]string{"b5a52fb0f0ca4780ee694fdc54e288948a3492c0a66c9edd1d798c1efd0696f8"},
+}
+
 func TestAddAddressInfo(t *testing.T) {
-	addressInfo := insightjson.AddressInfo{
-		"VmLNtooUmxwzYuwhf3Ha7hkNqhqZwsNEyw",
-		200000,
-		200000000000000,
-		200000,
-		200000000000000,
-		0,
-		0,
-		0,
-		0,
-		1,
-		1,
-		[]string{"b5a52fb0f0ca4780ee694fdc54e288948a3492c0a66c9edd1d798c1efd0696f8"},
-	}
 
 	AddAddressInfo(&addressInfo)
 
@@ -224,4 +225,18 @@ func TestAddAddressInfo(t *testing.T) {
 	if info.Address == addressInfo.Address {
 		t.Logf("Success: address %s found in database", addressInfo.Address)
 	}
+}
+
+func TestUpdateAddressInfoTotalSentSat(t *testing.T) {
+
+	sentSat := int64(500000000)
+	UpdateAddressInfoTotalSent(&addressInfo, sentSat, true)
+
+	info, _ := GetAddressInfo(addressInfo.Address)
+
+	if info.TotalSentSat == 9 {
+		t.Logf("Error Got: %d Expected: %d", addressInfo.TotalSentSat, sentSat)
+	}
+
+	fmt.Println(info.TotalSentSat)
 }

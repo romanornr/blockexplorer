@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/btcsuite/btcutil"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
@@ -175,10 +176,31 @@ func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
 
 	result := insightjson.AddressInfo{}
 
-	err := collection.Find(bson.M{"address": address}).One(&result)
+	err := collection.Find(bson.M{"addrStr": address}).One(&result)
 	if err != nil {
 		return result, err
 	}
 
 	return result, err
+}
+
+func UpdateAddressInfoTotalSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool) error {
+
+	AddressInfo.TxAppearances += 1
+	AddressInfo.TotalSentSat += sentSat
+	AddressInfo.TotalSent += btcutil.Amount(sentSat).ToBTC()
+	AddressInfo.BalanceSat -= sentSat
+	AddressInfo.Balance -= btcutil.Amount(sentSat).ToBTC()
+
+	GetSession()
+	collection := session.DB(Database).C("AddressInfo")
+
+	colQuerier := bson.M{"addrStr": AddressInfo.Address}
+	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance}}
+	err := collection.Update(colQuerier, change)
+	if err != nil {
+		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	}
+
+	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }

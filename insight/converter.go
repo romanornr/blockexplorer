@@ -81,12 +81,10 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 		vinDbTx, err := mongodb.GetTransaction(*vinHash)
 		if err == nil {
 			if tx.Confirmations != 0 {
-				//assign the last vout value for insightVin.Value
-				for _, vout := range vinDbTx.Vouts {
-					insightVin.Value = vout.Value
-				}
+				i := insightVin.Vout
+				insightVin.Value = vinDbTx.Vouts[i].Value
+				insightVin.Addr = vinDbTx.Vouts[i].ScriptPubKey.Addresses[0]
 			}
-			insightVin.Addr = vinDbTx.Vouts[0].ScriptPubKey.Addresses[0]
 		}
 
 		amount, _ := btcutil.NewAmount(insightVin.Value)

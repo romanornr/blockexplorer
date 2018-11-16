@@ -5,9 +5,6 @@ Bitcoin/Altcoin explorer
 $ cd $GOPATH/src/github.com/btcsuite/btcrpcclient/examples/bitcoincorehttp
 ```
 
-## Notes on Upgrading from v0.3
-
-The unspent outputs format now has `satoshis` and `height`:
 ```
 [
   {

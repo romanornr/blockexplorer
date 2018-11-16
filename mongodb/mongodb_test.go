@@ -227,16 +227,23 @@ func TestAddAddressInfo(t *testing.T) {
 	}
 }
 
-func TestUpdateAddressInfoTotalSentSat(t *testing.T) {
+func TestUpdateAddressInfoSentSat(t *testing.T) {
 
 	sentSat := int64(500000000)
-	UpdateAddressInfoTotalSent(&addressInfo, sentSat, true)
+	txid := "c0bff93b643be252c82c1155076958d8b3e1fee07bdc5342ba486d3b16a6ed58"
+	UpdateAddressInfoSent(&addressInfo, sentSat, true, txid)
 
 	info, _ := GetAddressInfo(addressInfo.Address)
 
-	if info.TotalSentSat == 9 {
-		t.Logf("Error Got: %d Expected: %d", addressInfo.TotalSentSat, sentSat)
+	if info.TotalSentSat != sentSat {
+		t.Errorf("Error Got: %d Expected: %d", addressInfo.TotalSentSat, sentSat)
 	}
 
-	fmt.Println(info.TotalSentSat)
+	//if info.TransactionsID[0] != "b5a52fb0f0ca4780ee694fdc54e288948a3492c0a66c9edd1d798c1efd0696f8" {
+	//	t.Errorf("Error TransactionsID[0] Got: %s, expected %s", info.TransactionsID[0], "b5a52fb0f0ca4780ee694fdc54e288948a3492c0a66c9edd1d798c1efd0696f8")
+	//}
+	//
+	//if info.TransactionsID[1] != txid {
+	//	t.Errorf("Error TransactionsID[0] Got: %s, expected %s", info.TransactionsID[1], txid)
+	//}
 }

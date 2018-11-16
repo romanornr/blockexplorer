@@ -161,13 +161,14 @@ func AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
 	GetSession()
 	collection := session.DB(Database).C("AddressInfo")
 
-	err := collection.Insert(AddressInfo)
-
-	if err != nil {
-		log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
+	//if AddressInfo.Address != "" { //check if address is not empty
+		err := collection.Insert(AddressInfo)
+		if err != nil {
+			log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
+		//}
 	}
 
-	return err
+	return nil
 }
 
 func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
@@ -184,7 +185,25 @@ func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
 	return result, err
 }
 
-func UpdateAddressInfoTotalSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool) error {
+func UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool, txid string) error {
+
+	GetSession()
+	collection := session.DB(Database).C("AddressInfo")
+	colQuerier := bson.M{"addrStr": AddressInfo.Address}
+
+	//AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid)
+
+	if !confirmed {
+		AddressInfo.UnconfirmedTxAppearances += 1
+		AddressInfo.UnconfirmedBalance -= btcutil.Amount(sentSat).ToBTC()
+		AddressInfo.UnconfirmedBalanceSat = sentSat
+		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
+		err := collection.Update(colQuerier, change)
+		if err != nil {
+			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+		}
+		return err
+	}
 
 	AddressInfo.TxAppearances += 1
 	AddressInfo.TotalSentSat += sentSat
@@ -192,15 +211,44 @@ func UpdateAddressInfoTotalSent(AddressInfo *insightjson.AddressInfo, sentSat in
 	AddressInfo.BalanceSat -= sentSat
 	AddressInfo.Balance -= btcutil.Amount(sentSat).ToBTC()
 
-	GetSession()
-	collection := session.DB(Database).C("AddressInfo")
-
-	colQuerier := bson.M{"addrStr": AddressInfo.Address}
-	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance}}
+	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
 	err := collection.Update(colQuerier, change)
 	if err != nil {
 		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 	}
+	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
+}
 
+func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
+
+	GetSession()
+	collection := session.DB(Database).C("AddressInfo")
+	colQuerier := bson.M{"addrStr": AddressInfo.Address}
+
+	//AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid)
+
+	if !confirmed {
+		AddressInfo.UnconfirmedTxAppearances += 1
+		AddressInfo.UnconfirmedBalance += btcutil.Amount(receivedSat).ToBTC()
+		AddressInfo.UnconfirmedBalanceSat += receivedSat
+		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
+		err := collection.Update(colQuerier, change)
+		if err != nil {
+			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+		}
+		return err
+	}
+
+	AddressInfo.TxAppearances += 1
+	AddressInfo.TotalReceivedSat += receivedSat
+	AddressInfo.TotalReceived += btcutil.Amount(receivedSat).ToBTC()
+	AddressInfo.BalanceSat += receivedSat
+	AddressInfo.Balance += btcutil.Amount(receivedSat).ToBTC()
+
+	change := bson.M{"$set": bson.M{"totalReceivedSat": AddressInfo.TotalReceivedSat, "totalReceived": AddressInfo.TotalReceived, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
+	err := collection.Update(colQuerier, change)
+	if err != nil {
+		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	}
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }

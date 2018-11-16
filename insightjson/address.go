@@ -8,19 +8,34 @@ type Address struct {
 }
 
 type AddressInfo struct {
-	Address                  string   `json:"addrStr,omitempty"`
-	Balance                  float64  `json:"balance"`
-	BalanceSat               int64    `json:"balanceSat"`
-	TotalReceived            float64  `json:"totalReceived"`
-	TotalReceivedSat         int64    `json:"totalReceivedSat"`
-	TotalSent                float64  `json:"totalSent"`
-	TotalSentSat             float64  `json:"totalSentSat"`
-	UnconfirmedBalance       float64  `json:"unconfirmedBalance"`
-	UnconfirmedBalanceSat    float64  `json:"unconfirmedBalanceSat"`
-	UnconfirmedTxAppearances int64    `json:"unconfirmedTxApperances"`
-	TxAppearances            int64    `json:"txApperances"`
-	TransactionsID           []string `json:"transactions,omitempty"`
+	Address                  string   `bson:"addrStr,omitempty" json:"addrStr,omitempty"`
+	Balance                  float64  `bson:"balance" json:"balance"`
+	BalanceSat               int64    `bson:"balanceSat" json:"balanceSat"`
+	TotalReceived            float64  `bson:"totalReceived" json:"totalReceived"`
+	TotalReceivedSat         int64    `bson:"totalReceivedSat" json:"totalReceivedSat"`
+	TotalSent                float64  `bson:"totalSent" json:"totalSent"`
+	TotalSentSat             int64    `bson:"totalSentSat" json:"totalSentSat"`
+	UnconfirmedBalance       float64  `bson:"unconfirmedBalance" json:"unconfirmedBalance"`
+	UnconfirmedBalanceSat    int64    `bson:"unconfirmedBalanceSat" json:"unconfirmedBalanceSat"`
+	UnconfirmedTxAppearances int64    `bson:"unconfirmedTxAppearances" json:"unconfirmedTxAppearances"`
+	TxAppearances            int64    `bson:"txAppearances" json:"txAppearances"`
+	TransactionsID           []string `bson:"transactions,omitempty" json:"transactions,omitempty"`
 }
+
+//type AddressInfo struct {
+//	Address                  string   `json:"addrStr,omitempty"`
+//	Balance                  float64  `json:"balance"`
+//	BalanceSat               int64    `json:"balanceSat"`
+//	TotalReceived            float64  `json:"totalReceived"`
+//	TotalReceivedSat         int64    `json:"totalReceivedSat"`
+//	TotalSent                float64  `json:"totalSent"`
+//	TotalSentSat             int64    `json:"totalSentSat"`
+//	UnconfirmedBalance       float64  `json:"unconfirmedBalance"`
+//	UnconfirmedBalanceSat    int64    `json:"unconfirmedBalanceSat"`
+//	UnconfirmedTxAppearances int64    `json:"unconfirmedTxAppearances"`
+//	TxAppearances            int64    `json:"txAppearances "`
+//	TransactionsID           []string `json:"transactions,omitempty"`
+//}
 
 // address tx output
 type AddressTxnOutput struct {

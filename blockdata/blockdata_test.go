@@ -16,7 +16,7 @@ func TestGetBlockCount(t *testing.T) {
 }
 
 func TestGetBlockHash(t *testing.T) {
-	result := GetBlockHash(1)
+	result,_ := GetBlockHash(1)
 	expected := "5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3"
 	if result.String() != expected {
 		t.Errorf("Expected ")
@@ -25,13 +25,13 @@ func TestGetBlockHash(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	blockhash := GetBlockHash(1)
+	blockhash,_ := GetBlockHash(1)
 	result, _ := GetBlock(blockhash)
 	fmt.Println(result)
 }
 
 func TestGetRawTransactionVerbose(t *testing.T) {
 	hash, _ := chainhash.NewHashFromStr("36a8207c5a3c46974ef777f5904c62409137eda73103ca324deb82b894785e9d")
-	transaction := GetRawTransactionVerbose(hash)
+	transaction, _ := GetRawTransactionVerbose(hash)
 	fmt.Println(transaction)
 }

@@ -71,6 +71,7 @@ try to analyze this address: https://chainz.cryptoid.info/via/address.dws?369935
 
 	2000 blocks with tx and a goroutine cost 2.56 seconds
 */
+
 func BuildDatabase() {
 	//end := 	3673+200
 	//end := 11000 + 50
@@ -94,7 +95,7 @@ func BuildDatabase() {
 		newBlock.Reward = subsidy.CalcViacoinBlockSubsidy(int32(newBlock.Height), isMainChain)
 		newBlock.IsMainChain = isMainChain
 
-		mongodb.AddBlock(newBlock)
+		go mongodb.AddBlock(newBlock)
 
 		go AddTransactions(txs, newBlock.Height)
 
@@ -150,7 +151,7 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
-		mongodb.AddTransaction(&newTx[0])
+		go mongodb.AddTransaction(&newTx[0])
 		CalcAddr(&newTx[0])
 	}
 }
@@ -178,10 +179,10 @@ func CalcAddr(tx *insightjson.Tx) {
 					1,
 					[]string{tx.Txid},
 				}
-				mongodb.AddAddressInfo(&AddressInfo)
+				go mongodb.AddAddressInfo(&AddressInfo)
 			} else {
 				value := int64(txVout.Value * 100000000)
-				mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
 		}
 
@@ -193,7 +194,7 @@ func CalcAddr(tx *insightjson.Tx) {
 		value := int64(txVin.ValueSat)
 
 		if err == nil {
-			mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
+			go mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
 		}
 	}
 }

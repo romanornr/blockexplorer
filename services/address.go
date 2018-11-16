@@ -1,17 +1,16 @@
 package services
 
 import (
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
 type addressDAO interface {
 	// Get returns *insightjson.Address with the given hash.
-	Get(hash *chainhash.Hash) (*insightjson.Address, error)
+	Get(addrID string) (*insightjson.AddressInfo, error)
 	// Create saves the given address in the database.
-	Create(block *insightjson.Address) error
+	Create(addr *insightjson.AddressInfo) error
 	// Delete deletes an address with the given hash from the database.
-	Delete(hash *chainhash.Hash) error
+	Delete(addrID string) error
 }
 
 type AddressService struct {
@@ -23,11 +22,11 @@ func NewAddressService(dao addressDAO) *AddressService {
 	return &AddressService{dao}
 }
 
-func (s *AddressService) Get(hash *chainhash.Hash) (*insightjson.Address, error) {
-	return s.dao.Get(hash)
+func (s *AddressService) Get(addrID string) (*insightjson.AddressInfo, error) {
+	return s.dao.Get(addrID)
 }
 
-func (s *AddressService) Create(addr *insightjson.Address) error {
+func (s *AddressService) Create(addr *insightjson.AddressInfo) error {
 	if err := addr.Validate(); err != nil {
 		return err
 	}
@@ -35,11 +34,11 @@ func (s *AddressService) Create(addr *insightjson.Address) error {
 	return s.dao.Create(addr)
 }
 
-func (s *AddressService) Delete(hash *chainhash.Hash) error {
-	_, err := s.dao.Get(hash)
+func (s *AddressService) Delete(addrID string) error {
+	_, err := s.dao.Get(addrID)
 	if err != nil {
 		return err
 	}
 
-	return s.dao.Delete(hash)
+	return s.dao.Delete(addrID)
 }

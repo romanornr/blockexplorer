@@ -8,7 +8,7 @@ type Address struct {
 }
 
 type AddressInfo struct {
-	Address                  string   `bson:"addrStr,omitempty" json:"addrStr,omitempty"`
+	Address                  string   `bson:"_id" json:"addrStr,omitempty"`
 	Balance                  float64  `bson:"balance" json:"balance"`
 	BalanceSat               int64    `bson:"balanceSat" json:"balanceSat"`
 	TotalReceived            float64  `bson:"totalReceived" json:"totalReceived"`
@@ -61,5 +61,9 @@ type SendByFundingHash struct {
 }
 
 func (addr *Address) Validate() error {
+	return nil
+}
+
+func (addr *AddressInfo) Validate() error {
 	return nil
 }

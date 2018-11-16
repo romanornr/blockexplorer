@@ -1,7 +1,7 @@
 package insightjson
 
 type BlockResult struct {
-	Hash              string   `json:"hash"`
+	Hash              string   `bson:"_id" json:"hash"`
 	Size              int32    `json:"size"`
 	Height            int64    `json:"height"`
 	Version           int32    `json:"version"`

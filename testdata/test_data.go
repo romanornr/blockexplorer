@@ -89,3 +89,40 @@ var (
 		},
 	}
 )
+
+// Test block.
+var (
+	Block2 = &insightjson.BlockResult{
+		Hash:              "45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc",
+		Size:              202,
+		Height:            2,
+		Version:           2,
+		MerkleRoot:        "bf5721dfb2a84b8f39ec28dd5a7d4e8b219ca3a361dd44db2d67470818a625ea",
+		Tx:                []string{"bf5721dfb2a84b8f39ec28dd5a7d4e8b219ca3a361dd44db2d67470818a625ea"},
+		Time:              1405608158,
+		Nonce:             554156041,
+		Bits:              "1e01ffff",
+		Difficulty:        0.001953110098725118,
+		Confirmations:     257,
+		PreviousBlockHash: "5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3",
+		NextBlockHash:     "7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2",
+		IsMainChain:       true,
+	}
+
+	Block3 = &insightjson.BlockResult{
+		Hash:              "7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2",
+		Size:              202,
+		Height:            3,
+		Version:           2,
+		MerkleRoot:        "cef916ad6fc1c3ca4ea50360f68ff0a43b5b4ffc217a51c1128106a61ced9900",
+		Tx:                []string{"cef916ad6fc1c3ca4ea50360f68ff0a43b5b4ffc217a51c1128106a61ced9900"},
+		Time:              1405608158,
+		Nonce:             191037457,
+		Bits:              "1e01ffff",
+		Difficulty:        1953.11,
+		Confirmations:     5629692,
+		PreviousBlockHash: "45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc",
+		NextBlockHash:     "a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f",
+		IsMainChain:       true,
+	}
+)

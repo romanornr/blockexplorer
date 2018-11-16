@@ -1,7 +1,6 @@
 package daos
 
 import (
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/globalsign/mgo"
 	"github.com/romanornr/cyberchain/insightjson"
 )
@@ -38,16 +37,16 @@ func (dao *MgoAddrDAO) DropDatabase() error {
 	return dao.session.DB(dao.databaseName).DropDatabase()
 }
 
-func (dao *MgoAddrDAO) Get(hash *chainhash.Hash) (*insightjson.Address, error) {
+func (dao *MgoAddrDAO) Get(addrID string) (*insightjson.AddressInfo, error) {
 	// reading may be slow, so open extra session here
 	session := dao.session.Clone()
 	defer session.Close()
 
 	collection := session.DB(dao.databaseName).C(addr)
 
-	result := &insightjson.Address{}
+	result := &insightjson.AddressInfo{}
 
-	err := collection.FindId(hash.String()).One(result)
+	err := collection.FindId(addrID).One(result)
 	if err != nil {
 		return nil, err
 	}
@@ -60,21 +59,11 @@ func (dao *MgoAddrDAO) Get(hash *chainhash.Hash) (*insightjson.Address, error) {
 	return result, nil
 }
 
-func (dao *MgoAddrDAO) Create(address *insightjson.Address) error {
+func (dao *MgoAddrDAO) Create(address *insightjson.AddressInfo) error {
 	// i guess no need in extra session
 	collection := dao.session.DB(dao.databaseName).C(addr)
 
-	index := mgo.Index{
-		Key:    []string{"hash"},
-		Unique: true,
-	}
-
-	err := collection.EnsureIndex(index)
-	if err != nil {
-		return err
-	}
-
-	err = collection.Insert(address)
+	err := collection.Insert(address)
 	if err != nil {
 		return err
 	}
@@ -82,10 +71,10 @@ func (dao *MgoAddrDAO) Create(address *insightjson.Address) error {
 	return nil
 }
 
-func (dao *MgoAddrDAO) Delete(hash *chainhash.Hash) error {
+func (dao *MgoAddrDAO) Delete(addrID string) error {
 	collection := dao.session.DB(dao.databaseName).C(addr)
 
-	err := collection.RemoveId(hash.String())
+	err := collection.RemoveId(addrID)
 	if err != nil {
 		return err
 	}

@@ -38,7 +38,7 @@ func (dao *MgoBlockDAO) DropDatabase() error {
 	return dao.session.DB(dao.databaseName).DropDatabase()
 }
 
-func (dao *MgoBlockDAO) Get(hash chainhash.Hash) (*insightjson.BlockResult, error) {
+func (dao *MgoBlockDAO) Get(hash *chainhash.Hash) (*insightjson.BlockResult, error) {
 	// reading may be slow, so open extra session here
 	session := dao.session.Clone()
 	defer session.Close()
@@ -64,17 +64,7 @@ func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
 	// i guess no need in extra session
 	collection := dao.session.DB(dao.databaseName).C(blocks)
 
-	index := mgo.Index{
-		Key:    []string{"hash"},
-		Unique: true,
-	}
-
-	err := collection.EnsureIndex(index)
-	if err != nil {
-		return err
-	}
-
-	err = collection.Insert(block)
+	err := collection.Insert(block)
 	if err != nil {
 		return err
 	}
@@ -82,10 +72,10 @@ func (dao *MgoBlockDAO) Create(block *insightjson.BlockResult) error {
 	return nil
 }
 
-func (dao *MgoBlockDAO) Delete(hash chainhash.Hash) error {
+func (dao *MgoBlockDAO) Delete(hash *chainhash.Hash) error {
 	collection := dao.session.DB(dao.databaseName).C(blocks)
 
-	err := collection.RemoveId(hash)
+	err := collection.RemoveId(hash.String())
 	if err != nil {
 		return err
 	}

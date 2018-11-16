@@ -1,13 +1,12 @@
 package daos_test
 
 import (
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/globalsign/mgo"
 	. "github.com/romanornr/cyberchain/daos"
-	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/testdata"
 )
 
@@ -24,27 +23,21 @@ func TestMgoTxDAO(t *testing.T) {
 	// Get chain hash of test transaction for the next lookup.
 	txID, err := chainhash.NewHashFromStr(testdata.TxBlock5421176Insight.Txid)
 	if err != nil {
-		t.Fatal(txID)
+		t.Fatal(err)
 	}
 
 	result, err := viaTxDAO.Get(txID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertTransactionsEqual(t, testdata.TxBlock5421176Insight, result)
+	assert.Equal(t, testdata.TxBlock5421176Insight, result)
 
-	// Test deletion.
+	// Delete from DB.
 	if err = viaTxDAO.Delete(txID); err != nil {
 		t.Fatal(err)
 	}
 	// Check deletion.
 	if _, err = viaTxDAO.Get(txID); err != mgo.ErrNotFound {
 		t.Fatal(err)
-	}
-}
-
-func assertTransactionsEqual(t *testing.T, expected, got *insightjson.Tx) {
-	if !reflect.DeepEqual(expected, got) {
-		t.Fatalf("expected %v but got %v instead", expected, got)
 	}
 }

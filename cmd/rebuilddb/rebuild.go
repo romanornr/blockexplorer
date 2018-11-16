@@ -101,7 +101,7 @@ func BuildDatabase() {
 
 		go mongodb.AddBlock(newBlock)
 
-		AddTransactions(txs, newBlock.Height)
+		AddTransactions(txs, newBlock.Height) // this in a go routine def causes a race conditions
 
 		progressBar.Increment()
 
@@ -155,8 +155,8 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
-		mongodb.AddTransaction(&newTx[0])
-		CalcAddr(&newTx[0])
+		go mongodb.AddTransaction(&newTx[0])
+		CalcAddr(&newTx[0]) //this in a go routine will cause a race condition
 	}
 }
 
@@ -183,10 +183,10 @@ func CalcAddr(tx *insightjson.Tx) {
 					1,
 					[]string{tx.Txid},
 				}
-				mongodb.AddAddressInfo(&AddressInfo)
+				go mongodb.AddAddressInfo(&AddressInfo)
 			} else {
 				value := int64(txVout.Value * 100000000)
-				mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
 		}
 
@@ -198,7 +198,7 @@ func CalcAddr(tx *insightjson.Tx) {
 		value := int64(txVin.ValueSat)
 
 		if err == nil {
-			mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
+			go mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
 		}
 	}
 }

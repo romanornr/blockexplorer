@@ -74,8 +74,8 @@ try to analyze this address: https://chainz.cryptoid.info/via/address.dws?369935
 
 func BuildDatabase() {
 	//end := 	3673+200
-	//end := 11000 + 50
-	end := 11139 + 1
+	end := 11000 + 50
+	//end := 11139 + 1
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i++ {
 		blockhash, _ := blockdata.GetBlockHash(int64(i))
@@ -95,9 +95,9 @@ func BuildDatabase() {
 		newBlock.Reward = subsidy.CalcViacoinBlockSubsidy(int32(newBlock.Height), isMainChain)
 		newBlock.IsMainChain = isMainChain
 
-		go mongodb.AddBlock(newBlock)
+		mongodb.AddBlock(newBlock)
 
-		go AddTransactions(txs, newBlock.Height)
+		AddTransactions(txs, newBlock.Height)
 
 		progressBar.Increment()
 
@@ -151,7 +151,7 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
-		go mongodb.AddTransaction(&newTx[0])
+		mongodb.AddTransaction(&newTx[0])
 		CalcAddr(&newTx[0])
 	}
 }
@@ -179,10 +179,10 @@ func CalcAddr(tx *insightjson.Tx) {
 					1,
 					[]string{tx.Txid},
 				}
-				go mongodb.AddAddressInfo(&AddressInfo)
+				mongodb.AddAddressInfo(&AddressInfo)
 			} else {
 				value := int64(txVout.Value * 100000000)
-				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+				mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
 		}
 
@@ -194,7 +194,7 @@ func CalcAddr(tx *insightjson.Tx) {
 		value := int64(txVin.ValueSat)
 
 		if err == nil {
-			go mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
+			mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
 		}
 	}
 }

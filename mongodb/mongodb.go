@@ -191,7 +191,7 @@ func UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, 
 	collection := session.DB(Database).C("AddressInfo")
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
-	//AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid)
+	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO: change order
 
 	if !confirmed {
 		AddressInfo.UnconfirmedTxAppearances += 1
@@ -225,7 +225,7 @@ func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat
 	collection := session.DB(Database).C("AddressInfo")
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
-	//AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid)
+	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO change order
 
 	if !confirmed {
 		AddressInfo.UnconfirmedTxAppearances += 1

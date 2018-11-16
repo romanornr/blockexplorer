@@ -176,7 +176,7 @@ func CalcAddr(tx *insightjson.Tx) {
 					0,
 					0,
 					1,
-					[]string{},
+					[]string{tx.Txid},
 				}
 				mongodb.AddAddressInfo(&AddressInfo)
 			} else {

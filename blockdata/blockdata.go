@@ -119,6 +119,7 @@ func SearchRawTransactionsVerbose(address btcutil.Address, skip, count int, reve
 	return tx
 }
 
+
 func GetBlockChainInfo() (*btcjson.GetBlockChainInfoResult, error) {
 	result, err := rpclient.GetBlockChainInfo()
 	return result, err

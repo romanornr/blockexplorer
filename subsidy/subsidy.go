@@ -1,9 +1,9 @@
 package subsidy
 
 import (
-	"github.com/btcsuite/btcutil"
-	"github.com/viacoin/viad/blockchain"
 	"github.com/viacoin/viad/chaincfg"
+	"github.com/viacoin/viad/blockchain"
+	"github.com/btcsuite/btcutil"
 )
 
 // TODO Bitcoin, Litecoin & Other coins

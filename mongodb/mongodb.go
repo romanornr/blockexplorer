@@ -162,9 +162,9 @@ func AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
 	collection := session.DB(Database).C("AddressInfo")
 
 	//if AddressInfo.Address != "" { //check if address is not empty
-	err := collection.Insert(AddressInfo)
-	if err != nil {
-		log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
+		err := collection.Insert(AddressInfo)
+		if err != nil {
+			log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
 		//}
 	}
 

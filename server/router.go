@@ -3,17 +3,17 @@ package server
 import (
 	_ "bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/database"
-	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"strconv"
+	"github.com/romanornr/cyberchain/mongodb"
+	"fmt"
 )
 
 var db = database.GetDatabaseInstance()

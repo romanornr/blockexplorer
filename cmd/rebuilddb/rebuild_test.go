@@ -1,10 +1,10 @@
 package rebuilddb
 
 import (
-	"fmt"
+	"testing"
 	"github.com/romanornr/cyberchain/mongodb"
 	"log"
-	"testing"
+	"fmt"
 )
 
 func TestDropDatabase(t *testing.T) {

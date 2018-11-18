@@ -156,30 +156,44 @@ func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
 		go mongodb.AddTransaction(&newTx[0])
-		AddrIndex(&newTx[0]) //this in a go routine will cause a race condition
+		CalcAddr(&newTx[0]) //this in a go routine will cause a race condition
 	}
 }
 
-func AddrIndex(tx *insightjson.Tx) {
+func CalcAddr(tx *insightjson.Tx) {
+
 	//receive
 	for _, txVout := range tx.Vouts {
-		go func() {
-			for _, voutAdress := range txVout.ScriptPubKey.Addresses {
-				dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
-				if err != nil {
-					addressInfo := createAddressInfo(voutAdress, txVout, tx)
-					go mongodb.AddAddressInfo(addressInfo)
-				} else {
-					value := int64(txVout.Value * 100000000) // satoshi value to coin value
-					go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+
+		for _, voutAdress := range txVout.ScriptPubKey.Addresses {
+			dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
+
+			if err != nil {
+				AddressInfo := insightjson.AddressInfo{
+					voutAdress,
+					txVout.Value,
+					int64(txVout.Value * 100000000),
+					txVout.Value,
+					int64(txVout.Value * 100000000),
+					0,
+					0,
+					0,
+					0,
+					0,
+					1,
+					[]string{tx.Txid},
 				}
+				go mongodb.AddAddressInfo(&AddressInfo)
+			} else {
+				value := int64(txVout.Value * 100000000)
+				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
-		}()
+		}
+
 	}
 
 	//sent
 	for _, txVin := range tx.Vins {
-
 		dbAddrInfo, err := mongodb.GetAddressInfo(txVin.Addr)
 		value := int64(txVin.ValueSat)
 
@@ -187,24 +201,4 @@ func AddrIndex(tx *insightjson.Tx) {
 			go mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
 		}
 	}
-}
-
-// create address info. An address can only "exist" if it ever received a transaction
-// the received is the vout values.
-func createAddressInfo(address string, txVout *insightjson.Vout, tx *insightjson.Tx) *insightjson.AddressInfo {
-	addressInfo := insightjson.AddressInfo{
-		address,
-		txVout.Value,
-		int64(txVout.Value * 100000000),
-		txVout.Value,
-		int64(txVout.Value * 100000000),
-		0,
-		0,
-		0,
-		0,
-		0,
-		1,
-		[]string{tx.Txid},
-	}
-	return &addressInfo
 }

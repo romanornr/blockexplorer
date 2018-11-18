@@ -1,10 +1,10 @@
 package blockdata
 
 import (
+	"testing"
+	"log"
 	"fmt"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"log"
-	"testing"
 )
 
 func TestGetBlockCount(t *testing.T) {
@@ -16,7 +16,7 @@ func TestGetBlockCount(t *testing.T) {
 }
 
 func TestGetBlockHash(t *testing.T) {
-	result, _ := GetBlockHash(1)
+	result,_ := GetBlockHash(1)
 	expected := "5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3"
 	if result.String() != expected {
 		t.Errorf("Expected ")
@@ -25,7 +25,7 @@ func TestGetBlockHash(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	blockhash, _ := GetBlockHash(1)
+	blockhash,_ := GetBlockHash(1)
 	result, _ := GetBlock(blockhash)
 	fmt.Println(result)
 }

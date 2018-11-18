@@ -156,31 +156,30 @@ func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
 		go mongodb.AddTransaction(&newTx[0])
-		CalcAddr(&newTx[0]) //this in a go routine will cause a race condition
+		AddrIndex(&newTx[0]) //this in a go routine will cause a race condition
 	}
 }
 
-func CalcAddr(tx *insightjson.Tx) {
-
+func AddrIndex(tx *insightjson.Tx) {
 	//receive
 	for _, txVout := range tx.Vouts {
-
-		for _, voutAdress := range txVout.ScriptPubKey.Addresses {
-			dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
-
-			if err != nil {
-				addressInfo := createAddressInfo(voutAdress, txVout, tx)
-				go mongodb.AddAddressInfo(addressInfo)
-			} else {
-				value := int64(txVout.Value * 100000000)
-				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+		go func() {
+			for _, voutAdress := range txVout.ScriptPubKey.Addresses {
+				dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
+				if err != nil {
+					addressInfo := createAddressInfo(voutAdress, txVout, tx)
+					go mongodb.AddAddressInfo(addressInfo)
+				} else {
+					value := int64(txVout.Value * 100000000) // satoshi value to coin value
+					go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+				}
 			}
-		}
-
+		}()
 	}
 
 	//sent
 	for _, txVin := range tx.Vins {
+
 		dbAddrInfo, err := mongodb.GetAddressInfo(txVin.Addr)
 		value := int64(txVin.ValueSat)
 

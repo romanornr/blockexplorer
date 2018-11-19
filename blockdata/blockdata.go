@@ -65,22 +65,14 @@ func GetBlockHeaderVerbose(blockhash *chainhash.Hash) (*btcjson.GetBlockHeaderVe
 }
 
 // get latest block info
-func GetLatestBlockInfo() *btcjson.GetBlockVerboseResult {
+func GetLatestBlock() (*btcjson.GetBlockVerboseResult, error) {
 	blockCount, err := rpclient.GetBlockCount() // get the latest blocks
-	if err != nil {
-		log.Println(err)
-	}
+
 	hash, err := rpclient.GetBlockHash(blockCount)
-	if err != nil {
-		log.Println(err)
-	}
 
 	block, err := rpclient.GetBlockVerbose(hash)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	return block
+	return block, err
 }
 
 func GetRawTransactionVerbose(transactionHash *chainhash.Hash) (*btcjson.TxRawResult, error) {

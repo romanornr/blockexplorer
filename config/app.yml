@@ -15,6 +15,4 @@ rpc:
   port: 5222
 
 zmq:
-  hashblock: tcp://127.0.0.1:2835
-  rawblock: tcp://127.0.0.1:28336
-  rawtx: tcp://127.0.0.1:28337
+  endpoint: tcp://127.0.0.1:28332

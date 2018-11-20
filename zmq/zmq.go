@@ -1,4 +1,4 @@
-package main
+package zeroMQ
 
 import (
 	"fmt"
@@ -7,18 +7,20 @@ import (
 	"github.com/romanornr/cyberchain/notification"
 	"github.com/zeromq/goczmq"
 	"log"
+	"github.com/spf13/viper"
 )
 
-func ZeroMQBlockNotify() {
+func BlockNotify() {
 
-	mongodb.DropDatabase()
+	endpoint := viper.GetString("zmq.endpoint")
 
-	subscriber, err := goczmq.NewSub("tcp://127.0.0.1:28332", "hashblock")
+	subscriber, err := goczmq.NewSub(endpoint, "hashblock")
+	defer subscriber.Destroy()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer subscriber.Destroy()
+	fmt.Println("ZeroMQ started to listen for blocks")
 
 	for {
 		msg, _, err := subscriber.RecvFrame()
@@ -27,6 +29,7 @@ func ZeroMQBlockNotify() {
 			log.Printf("Error ZMQ RecFrame: %s", err)
 		}
 
+		//lenght of a hash
 		if len(msg) == 32 {
 			block, err := blockdata.GetLatestBlock()
 			if err != nil {

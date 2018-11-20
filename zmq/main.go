@@ -1,16 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/romanornr/cyberchain/notification"
 	"github.com/zeromq/goczmq"
 	"log"
-	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/notification"
-	"fmt"
-	"github.com/romanornr/cyberchain/mongodb"
 )
 
-
-func main() {
+func ZeroMQBlockNotify() {
 
 	mongodb.DropDatabase()
 
@@ -20,7 +19,6 @@ func main() {
 	}
 
 	defer subscriber.Destroy()
-
 
 	for {
 		msg, _, err := subscriber.RecvFrame()
@@ -35,15 +33,16 @@ func main() {
 				log.Printf("Error ZMQ getting latest block: %s", err)
 			}
 
+			lastBlockInDb, err := mongodb.GetLastBlock()
+			if lastBlockInDb.Height+int64(1) != block.Height {
+				log.Printf("Warning: new block via ZMQ has blockheight %d but last blockheight in DB is %d\n", block.Height, lastBlockInDb.Height)
+				log.Print("It could be that all blocks in MongoDB are not up-to-date.")
+			}
+
 			notification.ProcessBlock(block)
 			fmt.Println("block added")
 		}
 
 	}
-
-}
-
-func ProcessBlock() {
-
 
 }

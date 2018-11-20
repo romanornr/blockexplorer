@@ -2,10 +2,9 @@ package rebuilddb
 
 import (
 	"github.com/romanornr/cyberchain/blockdata"
-	"gopkg.in/cheggaaa/pb.v2"
 	"github.com/romanornr/cyberchain/notification"
+	"gopkg.in/cheggaaa/pb.v2"
 )
-
 
 /*  THIS WAS IN BBOLT/BOLTDB
 note: 2000 blocks costs currently 8.4 MB and ~39 seconds to save. Running into performance issues.
@@ -40,4 +39,3 @@ func BuildDatabase() {
 	}
 	progressBar.Finish()
 }
-

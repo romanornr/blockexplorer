@@ -1,21 +1,21 @@
 package notification
 
 import (
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/romanornr/cyberchain/insight"
-	"github.com/romanornr/cyberchain/mongodb"
-	"github.com/romanornr/cyberchain/insightjson"
 	"encoding/hex"
-	"log"
-	"strings"
-	"github.com/romanornr/cyberchain/blockdata"
-	"io/ioutil"
 	"encoding/json"
-	"github.com/go-errors/errors"
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/go-errors/errors"
+	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/cyberchain/insight"
+	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/romanornr/cyberchain/subsidy"
-	"runtime"
+	"io/ioutil"
+	"log"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 var db = mongodb.GetSession()
@@ -82,7 +82,6 @@ func ProcessBlock(block *btcjson.GetBlockVerboseResult) {
 
 	AddTransactions(txs, newBlock.Height) // this in a go routine def causes a race conditions
 }
-
 
 // get coinbase hex string by getting the first transaction of the block
 // in the tx.Vin[0] and decode the hex string into a normal text

@@ -34,9 +34,9 @@ type Vout struct {
 	Value        float64      `json:"value"`
 	N            uint32       `json:"n"`
 	ScriptPubKey ScriptPubKey `json:"scriptPubKey,omitempty"`
-	SpentTxID    interface{}  `json:"spentTxId"`
-	SpentIndex   interface{}  `json:"spentIndex"`
-	SpentHeight  interface{}  `json:"spentHeight"`
+	SpentTxID    interface{}  `bson:"spentTxId" json:"spentTxId"`
+	SpentIndex   interface{}  `bson:"spentIndex" json:"spentIndex"`
+	SpentHeight  interface{}  `bson:"spentHeight" json:"spentHeight"`
 }
 
 type ScriptPubKey struct {

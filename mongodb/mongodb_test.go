@@ -247,3 +247,19 @@ func TestUpdateAddressInfoSentSat(t *testing.T) {
 	//	t.Errorf("Error TransactionsID[0] Got: %s, expected %s", info.TransactionsID[1], txid)
 	//}
 }
+
+func TestUpdateTransactionSpentDetails(t *testing.T) {
+	hash, _ := chainhash.NewHashFromStr("31c0cbc8411de76eac6018183e96d1cc2c904a9b50096758041eec92d9c9b9f9")
+	err := UpdateTransactionSpentDetails(hash)
+	if err != nil {
+		log.Println(err)
+	}
+
+	tx, err := GetTransaction(*hash)
+	if err != nil {
+		t.Errorf("Transaction not found with hash: %s\n", hash)
+	}
+
+	fmt.Println(tx.Vouts[0].SpentTxID)
+
+}

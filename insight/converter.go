@@ -135,7 +135,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 
 	//nospent
 	if !noSpent {
-		// TODO check https://explorer.viacoin.org/api/tx/99b5fa6e08c2d319dd68a16f781e72903a8e686f1c64dc1d11040490fbe81320 (call this txA)
+		// check https://explorer.viacoin.org/api/tx/99b5fa6e08c2d319dd68a16f781e72903a8e686f1c64dc1d11040490fbe81320 (call this txA)
 		// Check the Vout and you see a spentTxID 7ec15e6386f019f488cc8ea418be32ae968335b27e44fa2ba37c20cfebc56ab2 (call this txB)
 		// This is a transaction that happened after the current transaction that got processed.
 		// current tx (txA) from explorer.viacoin has blockheight 3673
@@ -147,13 +147,13 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 		//txA->Spentheight has txB->blockheight
 		for i, vin := range txNew.Vins {
 			if len(vin.Txid) > 1 {
-				txHash, _ := chainhash.NewHashFromStr(vin.Txid)
+				txHash, err := chainhash.NewHashFromStr(vin.Txid)
 				tx, err := mongodb.GetTransaction(*txHash)
-				if err != nil {
+				if err == nil {
 					tx.Vouts[i].SpentTxID = txNew.Txid
 					tx.Vouts[i].SpentIndex = txNew.Vins[i].N /// TODO (Not sure)
 					tx.Vouts[i].SpentHeight = txNew.Blockheight
-					//TODO unfinished. Mongodb update spentDetails  mongodb.UpdateTransactionSpentDetails()
+					mongodb.UpdateTransaction(&tx)
 				}
 			}
 		}

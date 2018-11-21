@@ -305,13 +305,13 @@ func TestUpdateAddressInfoSentSat(t *testing.T) {
 	//}
 }
 
-func TestUpdateTransactionSpentDetails(t *testing.T) {
+func TestUpdateTransaction(t *testing.T) {
 
 	tx1.Vouts[0].SpentTxID = "99c0cbc8411de76eac6018183e96d1cc2c904a9b50096758041eec92d9c9b9f9"
 	tx1.Vouts[0].SpentHeight = 99
 	tx1.Vouts[0].SpentIndex =  0
 
-	err := UpdateTransactionSpentDetails(tx1)
+	err := UpdateTransaction(tx1)
 	if err != nil {
 		log.Println(err)
 	}

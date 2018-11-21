@@ -253,7 +253,7 @@ func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }
 
-func UpdateTransactionSpentDetails(tx *insightjson.Tx) error {
+func UpdateTransaction(tx *insightjson.Tx) error {
 	GetSession()
 	collection := session.DB(Database).C("Transactions")
 	selector := bson.M{"txid": tx.Txid}

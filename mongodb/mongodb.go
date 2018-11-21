@@ -256,12 +256,12 @@ func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat
 func UpdateTransactionSpentDetails(tx *insightjson.Tx) error {
 	GetSession()
 	collection := session.DB(Database).C("Transactions")
-	colQuerier := bson.M{"txid": tx.Txid}
+	selector := bson.M{"txid": tx.Txid}
 
-	change := bson.M{"$set": bson.M{"spentTxId": 2, "spentIndex": 222, "spentHeight": 2}}
-	err := collection.Update(colQuerier, change)
+	_, err := collection.Upsert(selector, tx)
 	if err != nil {
-		log.Printf("Error: Failed to update Spent Details: %s", err)
+		log.Printf("Error updating spentDetails in mongodb: %s", err)
 	}
+
 	return err
 }

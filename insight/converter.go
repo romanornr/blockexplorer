@@ -6,6 +6,7 @@ import (
 	"github.com/btcsuite/btcutil"
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/mongodb"
+	"fmt"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
@@ -145,16 +146,20 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 		//txB->vin[0] has txA->txid as value
 		//txA->vout[0].SpentTxId has txB->txid
 		//txA->Spentheight has txB->blockheight
-		for i, vin := range txNew.Vins {
-			if len(vin.Txid) > 1 {
-				txHash, err := chainhash.NewHashFromStr(vin.Txid)
-				tx, err := mongodb.GetTransaction(*txHash)
-				if err == nil {
+		for _, vin := range txNew.Vins {
+			if len(vin.Txid) < 1 {
+				continue
+			}
+
+			txHash, _ := chainhash.NewHashFromStr(vin.Txid)
+			tx, err := mongodb.GetTransaction(*txHash)
+			if err == nil {
+					i := vin.Vout
+					fmt.Printf("Vin vout index: %d\n", i)
 					tx.Vouts[i].SpentTxID = txNew.Txid
-					tx.Vouts[i].SpentIndex = txNew.Vins[i].N /// TODO (Not sure)
+					//tx.Vouts[0].SpentIndex = txNew.Vins[i].N /// TODO (Not sure)
 					tx.Vouts[i].SpentHeight = txNew.Blockheight
-					mongodb.UpdateTransaction(&tx)
-				}
+					go mongodb.UpdateTransaction(&tx)
 			}
 		}
 	}

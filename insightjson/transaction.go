@@ -20,7 +20,7 @@ type Tx struct {
 
 type Vin struct {
 	Txid      string     `json:"txid,omitempty"`
-	Vout      uint32     `json:"vout,omitempty"`
+	Vout      uint32     `json:"vout"`
 	Sequence  uint32     `json:"sequence,omitempty"`
 	N         int        `json:"n"`
 	ScriptSig *ScriptSig `json:"scriptSig,omitempty"`

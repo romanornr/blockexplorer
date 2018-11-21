@@ -137,18 +137,16 @@ func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 func AddrIndex(tx *insightjson.Tx) {
 	//receive
 	for _, txVout := range tx.Vouts {
-		go func() {
-			for _, voutAdress := range txVout.ScriptPubKey.Addresses {
-				dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
-				if err != nil {
-					addressInfo := createAddressInfo(voutAdress, txVout, tx)
-					go mongodb.AddAddressInfo(addressInfo)
-				} else {
-					value := int64(txVout.Value * 100000000) // satoshi value to coin value
-					go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
-				}
+		for _, voutAdress := range txVout.ScriptPubKey.Addresses {
+			dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
+			if err != nil {
+				addressInfo := createAddressInfo(voutAdress, txVout, tx)
+				go mongodb.AddAddressInfo(addressInfo)
+			} else {
+				value := int64(txVout.Value * 100000000) // satoshi value to coin value
+				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
-		}()
+		}
 	}
 
 	//sent

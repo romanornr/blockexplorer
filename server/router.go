@@ -17,7 +17,7 @@ import (
 )
 
 var db = database.GetDatabaseInstance()
-var coin = viper.Get("coin.name")
+var coin = viper.GetString("coin.name")
 
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
@@ -46,7 +46,7 @@ func createRouter() *httprouter.Router {
 
 func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
-	err := tpl.ExecuteTemplate(w, "index.gohtml", coin)
+	err := tpl.ExecuteTemplate(w, "index.gohtml", string(coin))
 	if err != nil {
 		log.Printf("Error executing template: %s", err)
 	}

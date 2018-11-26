@@ -1,3 +1,9 @@
+# IDE files
 .idea/
 vendor/
+.vscode/
+debug
+
+# Generated databases
 database/*db
+database/*.db.lock

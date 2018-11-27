@@ -1,115 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 {{template "head"}}
-  <body>
-{{template "menu"}}
-<!-- begin container -->
-<style>
+<body>
+    {{template "menu"}}
 
-    .search-bar {
-        width: 750px;
-        height: 50px;
-        border-radius: 4px;
-        background-color: #ffffff;
-        margin: 35px auto 0 auto;
-        border: 1px solid rgb(1, 201, 253);
-        box-shadow: 0px 0px 6px 0px rgb(73, 181, 167);
-    }
+    <style>
+        .search-bar {
+            width: 750px;
+            height: 50px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            margin: 35px auto 0 auto;
+            border: 1px solid rgb(1, 201, 253);
+            box-shadow: 0px 0px 6px 0px rgb(73, 181, 167);
+        }
 
-    .search-bar input {
-        display: inline-block;
-        height: 50px;
-        vertical-align: top;
-    }
+            .search-bar input {
+                display: inline-block;
+                height: 50px;
+                vertical-align: top;
+            }
 
-    .search-bar input.search-bar-input {
-        width: 690px;
-        background-color: transparent;
-        border: none;
-        box-shadow: none;
-        color: rgba(163, 171, 176, 1);
-        font-size: 18px;
-    }
+                .search-bar input.search-bar-input {
+                    width: 690px;
+                    background-color: transparent;
+                    border: none;
+                    box-shadow: none;
+                    color: rgba(163, 171, 176, 1);
+                    font-size: 18px;
+                }
 
-    .search-bar .search-bar-submit {
-        height: 100% !important;
-        cursor: pointer !important;
-        background-color: transparent;
-        width: 50px;
-        outline: none;
-        border: none;
-        float: right;
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-    }
+            .search-bar .search-bar-submit {
+                height: 100% !important;
+                cursor: pointer !important;
+                background-color: transparent;
+                width: 50px;
+                outline: none;
+                border: none;
+                float: right;
+                border-top-right-radius: 4px;
+                border-bottom-right-radius: 4px;
+            }
 
-    .search-bar .search-bar-submit-image {
-        height: auto;
-        width: auto;
-    }
+            .search-bar .search-bar-submit-image {
+                height: auto;
+                width: auto;
+            }
 
-    .search-bar input.search-bar-submit:hover{
-        cursor: pointer;
-    }
-
-
-    th {
-        color: #9BA3AB;
-    }
-
-    .page-search-bar {
-        margin: 5px auto 30px auto;
-    }
-
-</style>
-<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-
-    <table align="center">
-        <tr>
-            <td vertical-align="center">
-                <h1 class="display-4">{{.}} <span class="hidden-xs">Blockchain Explorer</span></h1>
-
-                <form class="form-inline my-6 my-lg-0">
-                <div class="search-bar">
-                    <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
-                    <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="static/images/icons/search.svg" alt=""></button></div>
-                </form>
-
-                <br>
-            </td>
-        </tr>
-    </table>
-
-</div>
-
-<div class="container">
-
-    <table class="table table-borderless">
-        <thead>
-        <tr>
-            <th scope="col">Height</th>
-            <th scope="col">Age</th>
-            <th scope="col">Transactions</th>
-            <th scope="col">Mined by</th>
-            <th scope="col">Size (bytes)</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td scope="row" style="color: #0DCBFD">5687469</td>
-            <td>A few seconds ago</td>
-            <td>1</td>
-            <td>F2pool</td>
-            <td>91</td>
-        </tr>
-        </tbody>
-    </table>
-
-</div>
+            .search-bar input.search-bar-submit:hover {
+                cursor: pointer;
+            }
 
 
-{{template "footer"}}
-    </div> <!-- /container -->
-    
-  </body>
+        th {
+            color: #9BA3AB;
+        }
+
+        .page-search-bar {
+            margin: 5px auto 30px auto;
+        }
+    </style>
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+        <table align="center">
+            <tr>
+                <td vertical-align="center">
+                    <h1 class="display-4">{{.}} <span class="hidden-xs">Blockchain Explorer</span></h1>
+
+                    <form class="form-inline my-6 my-lg-0">
+                        <div class="search-bar">
+                            <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
+                            <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="static/images/icons/search.svg" alt=""></button>
+                        </div>
+                    </form>
+
+                    <br>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="container" id="app">
+        <table class="table table-borderless">
+            <thead>
+                <tr>
+                    <th scope="col">Height</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Transactions</th>
+                    <th scope="col">Mined by</th>
+                    <th scope="col">Size (bytes)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in blocks">
+                    <td scope="row" style="color: #0DCBFD">${item.height}</td>
+                    <td>${moment(item.time)}</td>
+                    <td>${item.tx.length}</td>
+                    <td v-if="item.poolInfo && item.poolInfo.poolName">${item.poolInfo.poolName}</td>
+                    <td v-else>BallonParty</h1>
+                    <td>${item.size}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        {{template "footer"}}
+    </div>
+
+
+    <script type="text/javascript">
+        // precise "10 seconds ago" formatting
+        moment.lang('precise-en', { relativeTime: { future: "in %s", past: "%s ago", s: "%d seconds", m: "a minute", mm: "%d minutes", h: "an hour", hh: "%d hours", d: "a day", dd: "%d days", M: "a month", MM: "%d months", y: "a year", yy: "%d years" } });
+        moment.lang('precise-en');
+    </script>
+
+    <script type="text/javascript">
+        vm = new Vue({
+            delimiters: ['${', '}'],
+            el: "#app",
+            data: function () {
+                return {
+                    blocks: []
+                }
+            },
+            mounted: function () {
+                this.getLastBlocks();
+            },
+            methods: {
+                getLastBlocks: function () {
+                    const url = '/api/via/blocks';
+                    axios.get(url).then(response => {
+                        var list = response.data;
+                        this.$set(this, 'blocks', list);
+                    })
+                },
+                moment: function (seconds) {
+                    return moment(new Date(seconds * 1000)).fromNow();
+                }
+            }
+        });
+    </script>
+</body>
 </html>

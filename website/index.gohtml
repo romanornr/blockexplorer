@@ -93,9 +93,10 @@
             <tbody>
                 <tr v-for="item in blocks">
                     <td scope="row" style="color: #0DCBFD">${item.height}</td>
-                    <td>${item.time}</td>
+                    <td>${moment(item.time)}</td>
                     <td>${item.tx.length}</td>
-                    <td></td>
+                    <td v-if="item.poolInfo && item.poolInfo.poolName">${item.poolInfo.poolName}</td>
+                    <td v-else>BallonParty</h1>
                     <td>${item.size}</td>
                 </tr>
             </tbody>
@@ -103,6 +104,13 @@
 
         {{template "footer"}}
     </div>
+
+
+    <script type="text/javascript">
+        // precise "10 seconds ago" formatting
+        moment.lang('precise-en', { relativeTime: { future: "in %s", past: "%s ago", s: "%d seconds", m: "a minute", mm: "%d minutes", h: "an hour", hh: "%d hours", d: "a day", dd: "%d days", M: "a month", MM: "%d months", y: "a year", yy: "%d years" } });
+        moment.lang('precise-en');
+    </script>
 
     <script type="text/javascript">
         vm = new Vue({
@@ -123,6 +131,9 @@
                         var list = response.data;
                         this.$set(this, 'blocks', list);
                     })
+                },
+                moment: function (seconds) {
+                    return moment(new Date(seconds * 1000)).fromNow();
                 }
             }
         });

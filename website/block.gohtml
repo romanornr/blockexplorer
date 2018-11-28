@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+{{template "head"}}
+    <body>
+    {{template "menu"}}
+
+    <style>
+        .search-bar {
+            width: 750px;
+            height: 50px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            margin: 35px auto 0 auto;
+            border: 1px solid rgb(1, 201, 253);
+            box-shadow: 0px 0px 6px 0px rgb(73, 181, 167);
+        }
+
+        .search-bar input {
+            display: inline-block;
+            height: 50px;
+            vertical-align: top;
+        }
+
+        .search-bar input.search-bar-input {
+            width: 690px;
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            color: rgba(163, 171, 176, 1);
+            font-size: 18px;
+        }
+
+        .search-bar .search-bar-submit {
+            height: 100% !important;
+            cursor: pointer !important;
+            background-color: transparent;
+            width: 50px;
+            outline: none;
+            border: none;
+            float: right;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .search-bar .search-bar-submit-image {
+            height: auto;
+            width: auto;
+        }
+
+        .search-bar input.search-bar-submit:hover {
+            cursor: pointer;
+        }
+
+
+        th {
+            color: #9BA3AB;
+        }
+
+        .page-search-bar {
+            margin: 5px auto 30px auto;
+        }
+    </style>
+
+    <form class="form-inline my-6 my-lg-0">
+        <div class="search-bar">
+            <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
+            <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="/static/images/icons/search.svg" alt=""></button>
+        </div>
+    </form>
+
+    <div style="margin-top: 30px" class="container" id="app">
+    <div>
+        <h1 class="text-muted">Block ${ block.height }</h1>
+        <div class="text-muted" id="blockhash">${ block.hash }
+            <a class="fa fa-copy" role="button" data-clipboard-copy="aeec6596f5634b46962f608dbd562d8f63c2b757b1d89666f4f0726c38534e88"></a>
+        </div>
+        <p>
+            <a href="block/5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3" class="btn btn-outline-info" role="button">Previous</a>
+            <a href="block/7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2" class="btn btn-outline-info" role="button">Next</a>
+        </p>
+    </div>
+
+        <table class="table" style="table-layout: fixed">
+            <tbody>
+            <tr>
+                <td><strong>Number Of Transactions</strong></td>
+                <td class="text-right text-muted">${ block.tx.length }</td>
+            </tr>
+            <tr>
+                <td><strong>Height</strong></td>
+                <td class="text-right text-muted">${ block.height }
+                    <span v-if="block.isMainChain" class="text-success">(Mainchain)</span>
+                    <span class="text-danger" v-else> <span class="glyphicon glyphicon-warning-sign"></span> (Orphaned)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Block Reward</strong></td>
+                <td class="text-right text-muted">${ block.reward }</td>
+            </tr>
+            <tr>
+                <td><strong>Timestamp</strong></td>
+                <td class="text-right text-muted">${ block.time }</td>
+            </tr>
+            <tr>
+                <td><strong>Mined by</strong></td>
+                <td class="text-right text-muted">${ block.poolInfo.poolName }<a href="" target="_blank" title=""></a>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Merkle Root</strong></td>
+                <td class="text-muted">${ block.merkleroot }</td>
+            </tr>
+            <tr>
+                <td><strong>Previous Block</strong></td>
+                <td class="text-right"><a href="block/0000000000000000000ef97ebe74a153564903396f7edc6fcb471f9707395ec4">${ block.height - 1}</a></td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <script type="text/javascript">
+        vm = new Vue({
+            delimiters: ['${', '}'],
+            el: "#app",
+            data: function () {
+                return {
+                    block: null
+                }
+            },
+            mounted: function () {
+                this.getLastBlocks();
+            },
+            methods: {
+                getLastBlocks: function () {
+                    const url = '/api/via/block/{{.}}';
+                    axios.get(url).then(response => {
+                        this.block = response.data
+                    })
+                },
+            }
+        });
+    </script>
+    </body>
+</html>

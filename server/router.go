@@ -25,6 +25,7 @@ func createRouter() *httprouter.Router {
 
 	router := httprouter.New()
 	router.GET("/", index)
+	router.GET("/block/:block", showBlock)
 	router.GET("/api/"+network+"/getdifficulty", getDifficulty)
 	router.GET("/api/"+network+"/blocks", getLatestBlocks)
 	router.GET("/api/"+network+"/block/:hash", getBlock)
@@ -49,6 +50,14 @@ func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	err := tpl.ExecuteTemplate(w, "index.gohtml", string(coin))
 	if err != nil {
 		log.Printf("Error executing template: %s", err)
+	}
+}
+
+func showBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+
+	err := tpl.ExecuteTemplate(w, "block.gohtml", ps.ByName("block"))
+	if err != nil {
+		log.Printf("Error executing template %s", err)
 	}
 }
 

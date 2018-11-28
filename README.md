@@ -1,10 +1,80 @@
 # cyberchain
 Bitcoin/Altcoin explorer
 
-```bash
-$ cd $GOPATH/src/github.com/btcsuite/btcrpcclient/examples/bitcoincorehttp
+##### Requirements
+
+- **Go 1.10 or 1.11**
+* Linux
+* MongoDB
+* dep https://github.com/golang/dep
+* btc or altcoin wallet with RPC ports etc configured.
+
+example config
+```
+rpcuser=via
+rpcpassword=via
+rpcallowip=127.0.0.1
+listen=1
+server=1
+daemon=1
+txindex=1
+whitelist=127.0.0.1
+zmqpubhashblock=tcp://127.0.0.1:28332
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28332
 ```
 
+and in config/app.yml
+```yaml
+server:
+  ip: 127.0.0.1
+  port: 8000
+
+coin:
+  name: Viacoin
+  symbol: via
+  algo: scrypt
+  blocktime: 24
+
+rpc:
+  ip: 127.0.0.1
+  username: via
+  password: via
+  port: 5222
+
+zmq:
+  endpoint: tcp://127.0.0.1:28332
+```
+
+
+  Installation instructions can be found here: https://golang.org/doc/install.
+  It is recommended to add `$GOPATH/bin` to your `PATH` at this point.
+
+
+#### setup
+```bash
+cd ~/go/src/gitlab.com/
+```
+```bash
+git clone git@gitlab.com:romanornr/cyberchain.git
+```
+
+```bash
+dep ensure
+```
+
+Can be run with:
+```bash
+go run main.go
+```
+
+or build a binary with
+```bash
+go build main.go
+```
+
+#### API 
 ```
 [
   {

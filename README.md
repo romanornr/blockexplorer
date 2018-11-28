@@ -9,7 +9,7 @@ Bitcoin/Altcoin explorer
 * dep https://github.com/golang/dep
 * btc or altcoin wallet with RPC ports etc configured.
 
-example config
+example config: ````cat ~/.viacoin/viacoin.conf````
 ```
 rpcuser=via
 rpcpassword=via

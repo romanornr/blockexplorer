@@ -75,8 +75,8 @@
             <a class="fa fa-copy" role="button" data-clipboard-copy="aeec6596f5634b46962f608dbd562d8f63c2b757b1d89666f4f0726c38534e88"></a>
         </div>
         <p>
-            <a href="block/5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b8a29b3e3" class="btn btn-outline-info" role="button">Previous</a>
-            <a href="block/7539b2ae01fd492adcc16c2dd8747c1562a702f9057560fee9ca647b67b729e2" class="btn btn-outline-info" role="button">Next</a>
+            <a :href="'/block/' + block.previousblockhash"  class="btn btn-outline-info" role="button">Previous</a>
+            <a :href="'/block/' + block.nextblockhash" class="btn btn-outline-info" role="button">Next</a>
         </p>
     </div>
 
@@ -112,7 +112,7 @@
             </tr>
             <tr>
                 <td><strong>Previous Block</strong></td>
-                <td class="text-right"><a href="block/0000000000000000000ef97ebe74a153564903396f7edc6fcb471f9707395ec4">${ block.height - 1}</a></td>
+                <td class="text-right"><a :href="'/block/' + block.previousblockhash">${ block.height - 1}</a></td>
             </tr>
             </tbody>
         </table>

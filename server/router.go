@@ -14,14 +14,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var db = database.GetDatabaseInstance()
 var coin = viper.GetString("coin.name")
+var network = viper.GetString("coin.symbol")
 
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
-	network := viper.GetString("coin.symbol")
 
 	router := httprouter.New()
 	router.GET("/", index)
@@ -53,9 +54,22 @@ func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 }
 
+
+type Data struct {
+	Coin string
+	BlockHash string
+	Symbol string
+}
+
 func showBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
-	err := tpl.ExecuteTemplate(w, "block.gohtml", ps.ByName("block"))
+	data := Data{
+		coin,
+		ps.ByName("block"),
+		strings.ToUpper(network),
+	}
+
+	err := tpl.ExecuteTemplate(w, "block.gohtml", data)
 	if err != nil {
 		log.Printf("Error executing template %s", err)
 	}

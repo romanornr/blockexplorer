@@ -69,7 +69,7 @@
                     <form class="form-inline my-6 my-lg-0">
                         <div class="search-bar">
                             <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
-                            <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="static/images/icons/search.svg" alt=""></button>
+                        <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="/static/images/icons/search.svg" alt=""></button>
                         </div>
                     </form>
 
@@ -92,7 +92,7 @@
             </thead>
             <tbody>
                 <tr v-for="item in blocks">
-                    <td scope="row" style="color: #0DCBFD">${item.height}</td>
+                    <td scope="row" style="color: #0DCBFD"><a :href="'/block/'+item.hash">${item.height}</a></td>
                     <td>${moment(item.time)}</td>
                     <td>${item.tx.length}</td>
                     <td v-if="item.poolInfo && item.poolInfo.poolName">${item.poolInfo.poolName}</td>

@@ -61,14 +61,24 @@
         }
     </style>
 
-    <form class="form-inline my-6 my-lg-0">
-        <div class="search-bar">
-            <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
-            <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="/static/images/icons/search.svg" alt=""></button>
-        </div>
-    </form>
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+        <table align="center">
+            <tr>
+                <td vertical-align="center">
+                    <h1 class="display-4">{{.Coin}} <span class="hidden-xs">Blockchain Explorer</span></h1>
 
-    <div style="margin-top: 30px" class="container" id="app">
+                    <form class="form-inline my-6 my-lg-0">
+                        <div class="search-bar">
+                            <input class="form-control search-bar-input" type="search" name="q" placeholder="Search for block height, hash, transaction, or address" autofocus="" autocomplete="off" aria-label="Search">
+                            <button class="search-bar-submit" type="image" name=""><img class="search-bar-submit-image" src="/static/images/icons/search.svg" alt=""></button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 10px" class="container" id="app">
     <div>
         <h1 class="text-muted">Block ${ block.height }</h1>
         <div class="text-muted" id="blockhash">${ block.hash }
@@ -117,6 +127,27 @@
             </tbody>
         </table>
 
+        <br>
+
+        <table class="table tabler">
+            <thead>
+            <tr>
+                <th>Hash</th>
+                <th>Value Out</th>
+                <th>From (amount)</th>
+                <th>To (amount)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <th><code>3a97c71e2fc016bf449....</code></th>
+                <td>0.782 {{ .Symbol }}</td>
+                <td>Generation + fees </td>
+                <td>Vc8wUgvZLvmZe6LcL8MmFq3XwedHYigDbT
+                    <div>nulldata</div>
+                </td>
+            </tbody>
+        </table>
+
     </div>
     <script type="text/javascript">
         vm = new Vue({
@@ -132,7 +163,7 @@
             },
             methods: {
                 getLastBlocks: function () {
-                    const url = '/api/via/block/{{.}}';
+                    const url = '/api/via/block/5ca78b039ccfec56373a4392c043bb9a6c77f8c2934af96b036c00dd2e4a0cfa';
                     axios.get(url).then(response => {
                         this.block = response.data
                     })

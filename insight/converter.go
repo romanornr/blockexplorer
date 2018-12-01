@@ -6,7 +6,6 @@ import (
 	"github.com/btcsuite/btcutil"
 	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/mongodb"
-	"fmt"
 )
 
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
@@ -155,7 +154,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 			tx, err := mongodb.GetTransaction(*txHash)
 			if err == nil {
 					i := vin.Vout
-					fmt.Printf("Vin vout index: %d\n", i)
+					//fmt.Printf("Vin vout index: %d\n", i)
 					tx.Vouts[i].SpentTxID = txNew.Txid
 					//tx.Vouts[0].SpentIndex = txNew.Vins[i].N /// TODO (Not sure)
 					tx.Vouts[i].SpentHeight = txNew.Blockheight

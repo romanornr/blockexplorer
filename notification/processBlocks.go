@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 var db = mongodb.GetSession()
@@ -161,22 +162,25 @@ func AddrIndex(tx *insightjson.Tx) {
 	}
 }
 
+
+
+var addrPool = sync.Pool{
+	New: func() interface{} { return new(insightjson.AddressInfo)},
+}
+
 // create address info. An address can only "exist" if it ever received a transaction
 // the received is the vout values.
 func createAddressInfo(address string, txVout *insightjson.Vout, tx *insightjson.Tx) *insightjson.AddressInfo {
-	addressInfo := insightjson.AddressInfo{
-		address,
-		txVout.Value,
-		int64(txVout.Value * 100000000),
-		txVout.Value,
-		int64(txVout.Value * 100000000),
-		0,
-		0,
-		0,
-		0,
-		0,
-		1,
-		[]string{tx.Txid},
-	}
-	return &addressInfo
+
+	data := addrPool.Get().(*insightjson.AddressInfo)
+	defer addrPool.Put(data)
+
+	data.Address = address
+	data.Balance = txVout.Value
+	data.BalanceSat = int64(txVout.Value * 100000000)
+	data.TotalReceived = txVout.Value
+	data.TotalReceivedSat = int64(txVout.Value * 100000000)
+	data.TxAppearances = 1
+	data.TransactionsID = []string{tx.Txid}
+	return data
 }

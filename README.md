@@ -87,13 +87,14 @@ go build main.go
 ##### TODO
 - [ ] ZMQ add new blocks (priority)
 - [ ] Solving Reorgs (priority)
+- [ ] Complete frontend with Vuejs
+- [ ] Adress validation
 - [ ] API endpoint block raw
 - [ ] API block summaries
 - [ ] API address properties
 - [ ] API query multiple addresses
 - [ ] Transaction broadcasting 
 - [ ] Support Postgresql too instead of Mongodb only
-- [ ] Complete frontend with Vuejs
 
 #### API 
 ```

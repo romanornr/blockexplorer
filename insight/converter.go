@@ -1,3 +1,8 @@
+// Copyright (c) 2018, The Decred developers
+// Copyright (c) 2017, The dcrdata developers
+// Copyright (c) 2019, Romano, Viacoin developer
+// See LICENSE for details.
+
 package insight
 
 import (

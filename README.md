@@ -1,5 +1,15 @@
-# cyberchain
-Bitcoin/Altcoin explorer
+# C4 Block explorer
+Bitcoin/Altcoin block explorer (unfinished)
+
+An attempt to write a blockexplorer with an insight explorer compatible API.<br>
+Unfinished explorer and needs a lot of refactoring since it was my first attempt to write a Golang application.<br>
+
+
+![alt text](https://github.com/romanornr/blockexplorer/blob/dev/screenshots/1.png?raw=true)
+<br></br>
+![alt text](https://github.com/romanornr/blockexplorer/blob/dev/screenshots/2.png?raw=true)
+<br></br>
+![alt text](https://github.com/romanornr/blockexplorer/blob/dev/screenshots/3.png?raw=true)
 
 ##### Requirements
 
@@ -74,6 +84,18 @@ or build a binary with
 go build main.go
 ```
 
+##### TODO
+- [ ] ZMQ add new blocks
+- [ ] Solving Reorgs
+- [ ] API endpoint api/asset/addr/[:addr]/utxo
+- [ ] API endpoint block raw
+- [ ] API block summaries
+- [ ] API address properties
+- [ ] API query multiple addresses
+- [ ] Transaction broadcasting 
+- [ ] Support Postgresql too instead of Mongodb only
+- [ ] Complete frontend with Vuejs
+
 #### API 
 ```
 [
@@ -123,53 +145,6 @@ Some additional general notes:
 - The endpoint for `/peer` is no longer relevant connection to bitcoind is via ZMQ.
 - `/tx` endpoint results will now include block height, and spentTx related fields will be set to `null` if unspent.
 - `/block` endpoint results does not include `confirmations` and will include `poolInfo`.
-
-## Notes on Upgrading from v0.2
-
-Some of the fields and methods are not supported:
-
-The `/tx/<txid>` endpoint JSON response will not include the following fields on the "vin"
-object:
-- `doubleSpentTxId` // double spends are not currently tracked
-- `isConfirmed` // confirmation of the previous output
-- `confirmations` // confirmations of the previous output
-- `unconfirmedInput`
-
-The `/tx/<txid>` endpoint JSON response will not include the following fields on the "vout"
-object.
-- `spentTs`
-
-The `/status?q=getTxOutSetInfo` method has also been removed due to the query being very slow and locking bitcoind.
-
-Plug-in support for Insight API is also no longer available, as well as the endpoints:
-- `/email/retrieve`
-- `/rates/:code`
-
-Caching support has not yet been added in the v0.3 upgrade.
-
-## Query Rate Limit
-
-To protect the server, insight-api has a built it query rate limiter. It can be configurable in `bitcore-node.json` with:
-``` json
-  "servicesConfig": {
-    "insight-api": {
-      "rateLimiterOptions": {
-        "whitelist": ["::ffff:127.0.0.1"]
-      }
-    }
-  }
-```
-With all the configuration options available: https://github.com/bitpay/insight-api/blob/master/lib/ratelimiter.js#L10-17
-
-Or disabled entirely with:
-``` json
-  "servicesConfig": {
-    "insight-api": {
-      "disableRateLimiter": true
-    }
-  }
-  ```
-  
 
 ## API HTTP Endpoints
 

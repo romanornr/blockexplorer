@@ -22,21 +22,6 @@ type AddressInfo struct {
 	TransactionsID           []string `bson:"transactions,omitempty" json:"transactions,omitempty"`
 }
 
-//type AddressInfo struct {
-//	Address                  string   `json:"addrStr,omitempty"`
-//	Balance                  float64  `json:"balance"`
-//	BalanceSat               int64    `json:"balanceSat"`
-//	TotalReceived            float64  `json:"totalReceived"`
-//	TotalReceivedSat         int64    `json:"totalReceivedSat"`
-//	TotalSent                float64  `json:"totalSent"`
-//	TotalSentSat             int64    `json:"totalSentSat"`
-//	UnconfirmedBalance       float64  `json:"unconfirmedBalance"`
-//	UnconfirmedBalanceSat    int64    `json:"unconfirmedBalanceSat"`
-//	UnconfirmedTxAppearances int64    `json:"unconfirmedTxAppearances"`
-//	TxAppearances            int64    `json:"txAppearances "`
-//	TransactionsID           []string `json:"transactions,omitempty"`
-//}
-
 // address tx output
 type AddressTxnOutput struct {
 	Address       string  `json:"address"`

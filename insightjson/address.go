@@ -49,3 +49,14 @@ type SendByFundingHash struct {
 	SpendingTxHash     interface{}
 	BlockHeight        interface{}
 }
+
+type UnpsentOutput struct {
+	Address       string `json:"address"`
+	Txid          string `json:"txid"`
+	Vout          int    `json:"vout"`
+	ScriptPubKey  string `json:"scriptPubKey"`
+	Amount        float64    `json:"amount"`
+	Satoshis      int64    `json:"satoshis"`
+	Height        int64    `json:"height"`
+	Confirmations int    `json:"confirmations"`
+}

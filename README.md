@@ -85,9 +85,8 @@ go build main.go
 ```
 
 ##### TODO
-- [ ] ZMQ add new blocks
-- [ ] Solving Reorgs
-- [ ] API endpoint api/asset/addr/[:addr]/utxo
+- [ ] ZMQ add new blocks (priority)
+- [ ] Solving Reorgs (priority)
 - [ ] API endpoint block raw
 - [ ] API block summaries
 - [ ] API address properties

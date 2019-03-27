@@ -69,7 +69,7 @@ func ProcessBlock(block *btcjson.GetBlockVerboseResult) {
 	txs := GetTx(block)
 
 	//add pool info to block before adding into mongodb
-	coinbaseText := GetCoinbaseText(txs[0])
+	coinbaseText := ParseCoinbaseText(txs[0])
 	pool, err := getPoolInfo(coinbaseText)
 	if err == nil {
 		newBlock.PoolInfo = &pool
@@ -87,7 +87,7 @@ func ProcessBlock(block *btcjson.GetBlockVerboseResult) {
 // get coinbase hex string by getting the first transaction of the block
 // in the tx.Vin[0] and decode the hex string into a normal text
 // Example: "52062f503253482f04dee0c7530807ffffff010000000d2f6e6f64655374726174756d2f" -> /nodeStratum/
-func GetCoinbaseText(tx *btcjson.TxRawResult) string {
+func ParseCoinbaseText(tx *btcjson.TxRawResult) string {
 	src := []byte(tx.Vin[0].Coinbase)
 
 	dst := make([]byte, hex.DecodedLen(len(src)))

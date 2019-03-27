@@ -270,3 +270,51 @@ func UpdateTransaction(tx *insightjson.Tx) error {
 
 	return err
 }
+
+
+// Get the unspent outs of an address
+// by getting the addressInfo of an address and aggregate over all transaction id's from the past
+// get the tx info from the database and check for the vouts
+// example: https://explorer.viacoin.org/api/addr/VmkyKgGBWDpcnFCtw8rvcYqg8xr7U4Ubzx/utxo
+func GetAddressUTXO(address string) []insightjson.UnpsentOutput {
+
+	utxo := []insightjson.UnpsentOutput{}
+
+	addressInfo, err := GetAddressInfo(address)
+	if err != nil {
+		return utxo
+	}
+
+	txHistory := addressInfo.TransactionsID
+
+	for _, h := range txHistory {
+		hash, err := chainhash.NewHashFromStr(h)
+		if err != nil {
+			fmt.Errorf("Not able to make tx hash into chainhash: %s", err)
+			return utxo
+		}
+
+		tx, err := GetTransaction(*hash)
+		if err != nil {
+			fmt.Errorf("failed to get transaction from mongodb: %s", err)
+		}
+
+		for idx, vout := range tx.Vouts {
+		//	if vout.SpentIndex != nil {  // TODO unsure yet. Only show non-empty utxo's or non-empty and empty. For now showing both
+				satoshi := btcutil.Amount(vout.Value)
+
+				output := insightjson.UnpsentOutput{
+					Address: address,
+					Txid: tx.Txid,
+					Vout: idx,
+					ScriptPubKey: vout.ScriptPubKey.Hex,
+					Amount: vout.Value,
+					Satoshis: int64(satoshi),
+					Height: tx.Blockheight,
+				}
+				utxo = append(utxo, output)
+			}
+		}
+	//}
+	return utxo
+}

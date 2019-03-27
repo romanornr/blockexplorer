@@ -31,6 +31,7 @@ func createRouter() *httprouter.Router {
 	router.GET("/api/"+network+"/block-index/:height", getBlockIndex)
 	router.GET("/api/"+network+"/tx/:txid", getTransaction)
 	router.GET("/api/"+network+"/addr/:addr", getAddressInfo)
+	router.GET("/api/"+network+"/addr/:addr/utxo", getAddressUtxo)
 
 	fileServer := http.FileServer(http.Dir("static"))
 
@@ -171,6 +172,11 @@ func getAddressInfo(w http.ResponseWriter, req *http.Request, ps httprouter.Para
 	if err != nil {
 		fmt.Println("shit")
 	}
-
 	json.NewEncoder(w).Encode(addressInfo)
+}
+
+func getAddressUtxo(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	address := ps.ByName("addr")
+	utxo := mongodb.GetAddressUTXO(address)
+	json.NewEncoder(w).Encode(utxo)
 }

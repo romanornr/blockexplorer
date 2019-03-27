@@ -172,6 +172,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 			}
 		}
 	}
+	// If you are reading this all this, you have no fucking life.
 
 	newTransaction = append(newTransaction, txNew)
 	return newTransaction

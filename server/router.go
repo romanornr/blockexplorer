@@ -8,7 +8,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/julienschmidt/httprouter"
 	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/database"
 	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/spf13/viper"
 	"log"
@@ -17,7 +16,6 @@ import (
 	"strings"
 )
 
-var db = database.GetDatabaseInstance()
 var coin = viper.GetString("coin.name")
 var network = viper.GetString("coin.symbol")
 
@@ -113,13 +111,6 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	//proxy := Blockchain.BlockListProxy{}
-	//
-	//block, err := proxy.FindBlock(hash)
-	//if err != nil {
-	//	log.Printf("error finding block: %s", err)
-	//}
-
 	block, err := mongodb.GetBlock(*hash)
 	if err != nil {
 		fmt.Fprintf(w, "Not found")
@@ -133,17 +124,17 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	json.NewEncoder(w).Encode(&block)
 }
 
-// confirmations from blocks always change. Block confirmations can be calculated with the following method
-// latest blockheight in database - blockheight
-func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64 {
-	currentBlockHeight, _ := database.GetLastBlockHeight(db)
-
-	blockConfirmations := int64(currentBlockHeight) - block.Confirmations
-	var m int64 = blockConfirmations
-	var q = &m
-	block.Confirmations = *q
-	return *q
-}
+//// confirmations from blocks always change. Block confirmations can be calculated with the following method
+//// latest blockheight in database - blockheight
+//func getBlockConfirmations(block btcjson.GetBlockVerboseResult) int64 {
+//	currentBlockHeight, _ := database.GetLastBlockHeight(db)
+//
+//	blockConfirmations := int64(currentBlockHeight) - block.Confirmations
+//	var m int64 = blockConfirmations
+//	var q = &m
+//	block.Confirmations = *q
+//	return *q
+//}
 
 func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 
@@ -153,8 +144,6 @@ func getBlockIndex(w http.ResponseWriter, req *http.Request, ps httprouter.Param
 		log.Println("could not convert height to int64")
 	}
 
-	//proxy := Blockchain.BlockListProxy{}
-	//blockIndex := proxy.FindBlockHash(int64(blockheight))
 	blockIndex, err := blockdata.GetBlockHash(int64(blockheight))
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)

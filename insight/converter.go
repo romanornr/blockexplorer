@@ -154,9 +154,14 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 			tx, err := mongodb.GetTransaction(*txHash)
 			if err == nil {
 					i := vin.Vout
-					//fmt.Printf("Vin vout index: %d\n", i)
 					tx.Vouts[i].SpentTxID = txNew.Txid
-					//tx.Vouts[0].SpentIndex = txNew.Vins[i].N /// TODO (Not sure)
+
+					for idx, x := range txNew.Vins {
+						if tx.Txid == x.Txid {
+							tx.Vouts[i].SpentIndex = idx
+						}
+					}
+
 					tx.Vouts[i].SpentHeight = txNew.Blockheight
 					go mongodb.UpdateTransaction(&tx)
 			}

@@ -29,7 +29,18 @@ func TestBuildDatabase(t *testing.T) {
 	BuildDatabase()
 }
 
-func BenchmarkBuildDatabase(b *testing.B) {
-	mongodb.DropDatabase()
-	BuildDatabase()
-}
+//func TestAddrIndex(t *testing.T) {
+//
+//	address := "Vn5maEzzZNPQ85rKFAgACRW98oiDtmMumG"
+//	exepectedBalance := 2360.19356999
+//	addressInfo, _ := mongodb.GetAddressInfo(address)
+//
+//	if addressInfo.Balance != exepectedBalance {
+//		t.Errorf("Wrong Balance: expected %f, actual %f", exepectedBalance, addressInfo.Balance)
+//	}
+//}
+
+//func BenchmarkBuildDatabase(b *testing.B) {
+//	mongodb.DropDatabase()
+//	BuildDatabase()
+//}

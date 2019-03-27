@@ -27,7 +27,7 @@ try to analyze this address: https://chainz.cryptoid.info/via/address.dws?369935
 
 func BuildDatabase() {
 	//end := 	3673+200
-	end := 11000 + 50
+	end := 15178 + 50
 	//end := 11139 + 1
 	progressBar := pb.StartNew(end)
 	for i := 1; i < end; i++ {

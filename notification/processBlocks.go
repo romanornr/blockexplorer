@@ -23,7 +23,7 @@ var db = mongodb.GetSession()
 var isMainChain bool
 
 func init() {
-	parseJson()
+	ParseJson()
 	IsMainChain()
 }
 
@@ -55,7 +55,7 @@ var (
 )
 
 // read and parse the json file and unmarshal
-func parseJson() {
+func ParseJson() {
 	path := strings.Split(basepath, "notification")
 	jsonFile, err := ioutil.ReadFile(path[0] + "pools.json")
 	if err != nil {

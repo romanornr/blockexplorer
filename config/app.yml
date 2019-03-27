@@ -10,7 +10,7 @@ coin:
 
 rpc:
   ip: 127.0.0.1
-  username: via
+  username: via1
   password: via
   port: 5222
 

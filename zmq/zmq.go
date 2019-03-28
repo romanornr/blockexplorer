@@ -2,13 +2,13 @@ package zeroMQ
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/mongodb"
 	"github.com/romanornr/cyberchain/notification"
 	"github.com/spf13/viper"
 	"github.com/zeromq/goczmq"
-	"log"
 )
 
 // listen to ZMQ endpoint and check for message length if it's a hash
@@ -26,13 +26,13 @@ func BlockNotify() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("ZeroMQ started to listen for blocks")
+	log.Info("ZeroMQ started to listen for blocks")
 
 	for {
 		msg, _, err := subscriber.RecvFrame()
 
 		if err != nil {
-			log.Printf("Error ZMQ RecFrame: %s", err)
+			log.Warningf("Error ZMQ RecFrame: %s", err)
 		}
 
 		//lenght of a hash
@@ -41,7 +41,10 @@ func BlockNotify() {
 			if err != nil {
 				go notification.ProcessBlock(block)
 			}
-			fmt.Printf("block %s added\n", block.Hash)
+			log.WithFields(log.Fields{
+				"block height": block.Height,
+				"block hash":   block.Hash,
+			}).Info("block successfully added to the database")
 		}
 
 	}
@@ -53,6 +56,7 @@ func BlockNotify() {
 func isSyned() (bestBlock *btcjson.GetBlockVerboseResult, err error) {
 	block, err := blockdata.GetLatestBlock()
 	if err != nil {
+		log.Warningf("RPC call failed to get latest block: %s\n", err)
 		return block, fmt.Errorf("RPC call failed to get latest block: %s\n", err)
 	}
 

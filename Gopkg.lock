@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:e4c72127d910a96daf869a44f3dd563b86dbe6931a172863a0e99c5ff04b59e4"
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "dae0fa8d5b0c810a8ab733fbd5510c7cae84eca4"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "master"
   digest = "1:6c6788d87ec354ac135dff255d03fb2bed41bfd10200ba555eb076842815702e"
   name = "github.com/btcsuite/btcd"
@@ -61,14 +69,6 @@
   revision = "31079b6807923eb23992c421b114992b95131b55"
 
 [[projects]]
-  digest = "1:c28625428387b63dd7154eb857f51e700465cfbf7c06f619e71f2da33cefe47e"
-  name = "github.com/coreos/bbolt"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "583e8937c61f1af6513608ccc75c97b6abdf4ff9"
-  version = "v1.3.0"
-
-[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -124,6 +124,14 @@
   pruneopts = "UT"
   revision = "348b672cd90d8190f8240323e372ecd1e66b59dc"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
@@ -246,21 +254,25 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:734c27157144367f37acd13536569700f61f01576c4a5e9665ccb76f79966d97"
+  digest = "1:09964e749cf1bc28841c5f9e0c45ad43b6e7cc6c6796f7b27a99914237ff1cc4"
   name = "golang.org/x/crypto"
   packages = [
     "pbkdf2",
     "ripemd160",
     "scrypt",
+    "ssh/terminal",
   ]
   pruneopts = "UT"
   revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
   branch = "master"
-  digest = "1:7ba061af4131fb44b30448572acd0d6fefbf63a61b97b7ef1dea0be5871c2742"
+  digest = "1:6a875550c3b582f6c2d7e2ce44aba792511f00016d7c46b0a4fb26f730ef3058"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows",
+  ]
   pruneopts = "UT"
   revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
 
@@ -342,11 +354,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/Sirupsen/logrus",
     "github.com/btcsuite/btcd/btcjson",
     "github.com/btcsuite/btcd/chaincfg/chainhash",
     "github.com/btcsuite/btcd/rpcclient",
     "github.com/btcsuite/btcutil",
-    "github.com/coreos/bbolt",
     "github.com/globalsign/mgo",
     "github.com/globalsign/mgo/bson",
     "github.com/go-errors/errors",

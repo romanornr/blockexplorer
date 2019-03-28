@@ -6,10 +6,10 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/romanornr/cyberchain/blockdata"
 	"github.com/romanornr/cyberchain/cmd/rebuilddb"
 	"github.com/romanornr/cyberchain/mongodb"
-	"log"
 )
 
 // This function can be exected with: go run cmd/build.go
@@ -20,7 +20,7 @@ func main() {
 
 	tip, err := blockdata.GetLatestBlock()
 	if err != nil {
-		log.Fatalf("could not get the tip/latest block of the chain")
+		logrus.Fatal("could not get the tip/latest block of the chain")
 	}
 	rebuilddb.BuildDatabase(tip.Height)
 }

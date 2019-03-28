@@ -158,17 +158,17 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 			txHash, _ := chainhash.NewHashFromStr(vin.Txid)
 			tx, err := mongodb.GetTransaction(*txHash)
 			if err == nil {
-					i := vin.Vout
-					tx.Vouts[i].SpentTxID = txNew.Txid
+				i := vin.Vout
+				tx.Vouts[i].SpentTxID = txNew.Txid
 
-					for idx, x := range txNew.Vins {
-						if tx.Txid == x.Txid {
-							tx.Vouts[i].SpentIndex = idx
-						}
+				for idx, x := range txNew.Vins {
+					if tx.Txid == x.Txid {
+						tx.Vouts[i].SpentIndex = idx
 					}
+				}
 
-					tx.Vouts[i].SpentHeight = txNew.Blockheight
-					go mongodb.UpdateTransaction(&tx)
+				tx.Vouts[i].SpentHeight = txNew.Blockheight
+				go mongodb.UpdateTransaction(&tx)
 			}
 		}
 	}

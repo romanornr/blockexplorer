@@ -271,7 +271,6 @@ func UpdateTransaction(tx *insightjson.Tx) error {
 	return err
 }
 
-
 // Get the unspent outs of an address
 // by getting the addressInfo of an address and aggregate over all transaction id's from the past
 // get the tx info from the database and check for the vouts
@@ -300,21 +299,21 @@ func GetAddressUTXO(address string) []insightjson.UnpsentOutput {
 		}
 
 		for idx, vout := range tx.Vouts {
-		//	if vout.SpentIndex != nil {  // TODO unsure yet. Only show non-empty utxo's or non-empty and empty. For now showing both
-				satoshi := btcutil.Amount(vout.Value)
+			//	if vout.SpentIndex != nil {  // TODO unsure yet. Only show non-empty utxo's or non-empty and empty. For now showing both
+			satoshi := btcutil.Amount(vout.Value)
 
-				output := insightjson.UnpsentOutput{
-					Address: address,
-					Txid: tx.Txid,
-					Vout: idx,
-					ScriptPubKey: vout.ScriptPubKey.Hex,
-					Amount: vout.Value,
-					Satoshis: int64(satoshi),
-					Height: tx.Blockheight,
-				}
-				utxo = append(utxo, output)
+			output := insightjson.UnpsentOutput{
+				Address:      address,
+				Txid:         tx.Txid,
+				Vout:         idx,
+				ScriptPubKey: vout.ScriptPubKey.Hex,
+				Amount:       vout.Value,
+				Satoshis:     int64(satoshi),
+				Height:       tx.Blockheight,
 			}
+			utxo = append(utxo, output)
 		}
+	}
 	//}
 	return utxo
 }

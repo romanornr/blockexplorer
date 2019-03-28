@@ -162,10 +162,8 @@ func AddrIndex(tx *insightjson.Tx) {
 	}
 }
 
-
-
 var addrPool = sync.Pool{
-	New: func() interface{} { return new(insightjson.AddressInfo)},
+	New: func() interface{} { return new(insightjson.AddressInfo) },
 }
 
 // create address info. An address can only "exist" if it ever received a transaction

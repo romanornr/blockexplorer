@@ -53,11 +53,10 @@ func index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 }
 
-
 type Data struct {
-	Coin string
+	Coin      string
 	BlockHash string
-	Symbol string
+	Symbol    string
 }
 
 func showBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {

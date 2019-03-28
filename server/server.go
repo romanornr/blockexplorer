@@ -19,6 +19,9 @@ func init() {
 }
 
 func Start() {
+
+	//go zeroMQ.BlockNotify()   uncomment this to get new blocks added. Commented out due to development now.
+
 	port := ":" + viper.GetString("server.port")
 	addr := flag.String("addr", port, "http service address")
 

@@ -31,7 +31,8 @@ func TestDropDatabase(t *testing.T) {
 }
 
 func TestBuildDatabase(t *testing.T) {
-	BuildDatabase()
+	mockTipHeight := int64(11139 + 1)
+	BuildDatabase(mockTipHeight)
 }
 
 //func TestAddrIndex(t *testing.T) {

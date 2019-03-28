@@ -30,14 +30,14 @@ try to analyze this address: https://chainz.cryptoid.info/via/address.dws?369935
 	// f5a38ecb879748de37c4bd4ae3695ae6fe324a61c666eae3d547e736ae42ff62;11129;2014-07-20 00:40:49;10;2540.20557
 */
 
-func BuildDatabase() {
-	//end := 	3673+200
-	end := 15178 + 50
-	//end := 11139 + 1
-	progressBar := pb.StartNew(end)
-	for i := 1; i < end; i++ {
-		blockhash, _ := blockdata.GetBlockHash(int64(i))
-		block, _ := blockdata.GetBlock(blockhash)
+// receive the latest blockheight
+// RPC call and add every block into the database
+// from 1 till the latestBlockHeight
+func BuildDatabase(latestBlockHeight int64) {
+	progressBar := pb.Start64(latestBlockHeight)
+	for i := int64(1); i < latestBlockHeight; i++ {
+		blockHash, _ := blockdata.GetBlockHash(i)
+		block, _ := blockdata.GetBlock(blockHash)
 		notification.ProcessBlock(block)
 		progressBar.Increment()
 

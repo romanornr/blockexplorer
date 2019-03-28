@@ -74,7 +74,18 @@ git clone git@gitlab.com:romanornr/cyberchain.git
 dep ensure
 ```
 
-Can be run with:
+##### Build database
+To create the database for the block explorer use
+```bash
+go run cmd/build.go
+```
+or build the binary with
+```bash
+go build cmd/build.go
+./build
+```
+
+##### Run webserver
 ```bash
 go run main.go
 ```
@@ -84,16 +95,20 @@ or build a binary with
 go build main.go
 ```
 
+Make sure the core wallet for the asset is running with the right RPC auth details<br>
+and make sure mongodb is running before you start.
+
 ##### TODO
-- [ ] ZMQ add new blocks (priority)
 - [ ] Solving Reorgs (priority)
 - [ ] Complete frontend with Vuejs
 - [ ] Adress validation
+- [ ] Subsidy calculation for different coins instead of only viacoin
 - [ ] API endpoint block raw
 - [ ] API block summaries
 - [ ] API address properties
 - [ ] API query multiple addresses
-- [ ] Transaction broadcasting 
+- [ ] Transaction broadcasting
+- [ ] Access mogodbd from remote host (assumes localhost now)
 - [ ] Support Postgresql too instead of Mongodb only
 
 #### API 

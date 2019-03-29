@@ -36,7 +36,7 @@ func GetSession() *mgo.Session {
 		session, err = mgo.DialWithInfo(mongoDBDialInfo)
 		if err != nil {
 			session.Close()
-			panic(err)
+			log.Panicf("failed to open mongodb session: %s\n", err)
 		}
 	}
 	return session

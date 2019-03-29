@@ -37,11 +37,15 @@ var hashes = [7]string{"5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b
 // It has a different hash compared to the block in the database with blockheight:2
 // This would be a potential chain reorg
 var reorgBlock = &btcjson.GetBlockVerboseResult{
-	Hash:   "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6",
-	//PreviousHash: "a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f",
+	Hash:   "8b1419de52400f6467d311c9d6a5e4fd8a0816041fb7572ffc704fd7f9ffe8ef",
+	PreviousHash: "a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f",
 	Height: 4,
 }
 
+// block d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6
+// has previous hash: a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f
+// we insert a new block with previous hash a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f
+// in order to trigger a reorg.
 func TestComparePreviousHash(t *testing.T) {
 
 	BuildMockDatabase()
@@ -56,19 +60,18 @@ func TestComparePreviousHash(t *testing.T) {
 		t.Errorf("Could not get block: %s via RPC", hashes[5])
 	}
 
-	Check(block)
+	reorg, _, _ := Check(block)
 
-	if err != nil {
+	if reorg != false {
 		t.Errorf("Did not expect reorg: %s", err)
 	}
 
 	//check if it detects a chain reorg
 	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
 	//block, _ = blockdata.GetBlock(blockhash)
-	Check(reorgBlock)
-
-	if err == nil {
-		t.Errorf("No chain reorg detected, however it was exected %s", err)
+	reorg, _, _ =Check(reorgBlock)
+	if reorg != true {
+		t.Errorf("No chain reorg detected, however it was exected")
 	}
 }
 

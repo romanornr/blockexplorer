@@ -8,12 +8,19 @@ package Reorg
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/btcsuite/btcd/btcjson"
+	"github.com/romanornr/cyberchain/insightjson"
 	"github.com/romanornr/cyberchain/mongodb"
 )
 
-func Check(newBlock *btcjson.GetBlockVerboseResult) {
-	tip, _ := mongodb.GetLastBlock()
-	if newBlock.PreviousHash != tip.Hash {
-		log.Warningln("Reorg detected")
+func Check(block *btcjson.GetBlockVerboseResult) (reorg bool, tip insightjson.BlockResult,  newBlock *btcjson.GetBlockVerboseResult) {
+	tip, err := mongodb.GetLastBlock()
+	if err != nil {
+		log.Warningf("error getting tip from database: %s\n", err)
 	}
+	if block.PreviousHash != tip.Hash {
+		log.Warningln("Reorg detected")
+		return true, tip, block
+	}
+
+	return false, tip, block
 }

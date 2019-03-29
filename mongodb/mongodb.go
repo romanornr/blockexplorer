@@ -7,6 +7,7 @@ package mongodb
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -14,7 +15,6 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/romanornr/cyberchain/insightjson"
-	"log"
 )
 
 const (
@@ -71,6 +71,7 @@ func AddBlock(Block *insightjson.BlockResult) error {
 	err = collection.Insert(Block)
 
 	if err != nil {
+		log.Warningf("Block with hash %s did not get inserted", Block.Hash)
 		return fmt.Errorf("Block with hash %s did not get inserted", Block.Hash)
 	}
 

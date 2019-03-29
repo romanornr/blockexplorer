@@ -6,21 +6,21 @@
 package Reorg
 
 import (
-	"fmt"
+	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/romanornr/cyberchain/notification"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/database"
 )
 
 func BuildMockDatabase() {
+	mongodb.DropDatabase()
 	for i := int64(1); i < 6; i++ {
-		blockhash := blockdata.GetBlockHash(i)
+		blockhash, _ := blockdata.GetBlockHash(i)
 		block, _ := blockdata.GetBlock(blockhash)
-		database.AddBlock(db, blockhash.String(), block)
-		database.AddIndexBlockHeightWithBlockHash(db, blockhash.String(), block.Height)
+		notification.ProcessBlock(block)
 	}
 }
 
@@ -38,6 +38,7 @@ var hashes = [7]string{"5ca83af67146e286610e118cc8f8e6a183c319fbb4a8fdb9e99daa2b
 // This would be a potential chain reorg
 var reorgBlock = &btcjson.GetBlockVerboseResult{
 	Hash:   "d8c9053f3c807b1465bd0a8bc99421e294066dd59e98cf14bb49d990ea88aff6",
+	//PreviousHash: "a35d1bdbd41ea6c290d9a151bdafd39b76eda3c9c9d44e02d0209dd77f5aec1f",
 	Height: 4,
 }
 
@@ -45,7 +46,6 @@ func TestComparePreviousHash(t *testing.T) {
 
 	BuildMockDatabase()
 
-	//check if no chain reorg gets detected
 	blockhash, err := chainhash.NewHashFromStr(hashes[5]) // check if blockhash is valid
 	if err != nil {
 		t.Errorf("The hash %s is not valid\n", blockhash.String())
@@ -56,7 +56,7 @@ func TestComparePreviousHash(t *testing.T) {
 		t.Errorf("Could not get block: %s via RPC", hashes[5])
 	}
 
-	_, err = Check(block)
+	Check(block)
 
 	if err != nil {
 		t.Errorf("Did not expect reorg: %s", err)
@@ -65,64 +65,10 @@ func TestComparePreviousHash(t *testing.T) {
 	//check if it detects a chain reorg
 	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
 	//block, _ = blockdata.GetBlock(blockhash)
-	_, err = Check(reorgBlock)
+	Check(reorgBlock)
 
 	if err == nil {
 		t.Errorf("No chain reorg detected, however it was exected %s", err)
 	}
 }
 
-func TestNewDefaultSubject(t *testing.T) {
-	var chain = NewChain()
-	var p1 = NewMonitor("blockMonitor", chain)
-	var p2 = NewMonitor("reorgMonitor", chain)
-
-	chain.Attach(p1)
-	chain.Attach(p2)
-
-	//st := NewChainState("New block found")
-	//game.SetState(st)
-
-	//st2 := NewChainState("Invalid block")
-	//p2.chain.SetState(st2)
-
-	st := NewChainState("New block found")
-	chain.SetState(st)
-
-	//if *chain.GetState() == "New block found" {
-	//	hash := blockdata.GetBlockHash(blockdata.GetBlockCount())
-	//	block, _ := blockdata.GetBlock(hash)
-	//	err := Check(block)
-	//
-	//	if err != nil {
-	//		p2.chain.SetState(NewChainState("Reorg detected"))
-	//	}
-	//}
-
-	fmt.Println(string(*chain.GetState()))
-}
-
-func TestRollbackChain(t *testing.T) {
-	block, err := Check(reorgBlock)
-	if err != nil {
-		RollbackChain(block)
-	}
-
-	lastBlockheightInDatabase, _ := database.GetLastBlockHeight(db)
-	if lastBlockheightInDatabase != 3 {
-		t.Errorf("Last blockheight in database expected: %d actual %d", 3, lastBlockheightInDatabase)
-	}
-}
-
-func TestRepairChain(t *testing.T) {
-	RepairChain(true)
-	lastBlockHeightInDatabase, lastBlockHashInDatabase := database.GetLastBlockHeight(db)
-
-	if lastBlockHeightInDatabase != 10 {
-		t.Errorf("Repaired chain. Last block in Database: expected %d actual %d", 10, lastBlockHeightInDatabase)
-	}
-
-	if string(lastBlockHashInDatabase) != "ce8404d785241d9dfc89a3b895c3126c9cf8af6e37066490a9a5271fcabc024d" {
-		t.Errorf("Repaired chain. Last blockheight in Database: %d Expected hash %s actual %s", lastBlockHashInDatabase, "ce8404d785241d9dfc89a3b895c3126c9cf8af6e37066490a9a5271fcabc024d", lastBlockHashInDatabase)
-	}
-}

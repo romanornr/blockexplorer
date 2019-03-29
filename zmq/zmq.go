@@ -37,7 +37,7 @@ func BlockNotify() {
 
 		//lenght of a hash
 		if len(msg) == 32 {
-			block, err := isSyned()
+			block, _, blocksBehind, err := isSyned()
 			if err != nil {
 				go notification.ProcessBlock(block)
 			}
@@ -45,6 +45,7 @@ func BlockNotify() {
 				"block height": block.Height,
 				"block hash":   block.Hash,
 			}).Info("block successfully added to the database")
+			log.Warningf("blocks behind: %d\n", blocksBehind)
 		}
 
 	}
@@ -52,21 +53,29 @@ func BlockNotify() {
 
 // check if block explorer is synced
 // meaning the last block in the database should be equal to the block received from an RPC call
-// always return the best block (block received from RPC call) and error message
-func isSyned() (bestBlock *btcjson.GetBlockVerboseResult, err error) {
+// always return the best block (block received from RPC call) how many blocks it's behind and error message
+// being behind 1 block behind is not an issue. Just needs the newest block
+func isSyned() (bestBlock *btcjson.GetBlockVerboseResult, synced bool, blocksBehind int64, err error) {
 	block, err := blockdata.GetLatestBlock()
 	if err != nil {
 		log.Warningf("RPC call failed to get latest block: %s\n", err)
-		return block, fmt.Errorf("RPC call failed to get latest block: %s\n", err)
+		return block, false, int64(0), fmt.Errorf("RPC call failed to get latest block: %s\n", err)
 	}
 
 	lastBlockInDb, err := mongodb.GetLastBlock()
-	if lastBlockInDb.Hash != block.Hash {
-		return block, fmt.Errorf("block explorer is not in sync. Blockhash in database: %s Blockhash via RPC call: %s", lastBlockInDb.Hash, block.Hash)
+	if err != nil {
+		return block, false, int64(0), fmt.Errorf("failed to retrieve last block from database: %s\n", err)
 	}
 
+	blocksBehind = block.Height - lastBlockInDb.Height
+
 	if lastBlockInDb.Height != block.Height {
-		return block, fmt.Errorf("block explorer is not in sync. BlockHeight in database: %d Blockheight via RPC call: %d", lastBlockInDb.Height, block.Height)
+		return block, false, blocksBehind, nil
 	}
-	return block, nil
+
+	if lastBlockInDb.Hash != block.Hash {
+		return block, false, blocksBehind, nil
+	}
+
+	return block, true, blocksBehind, nil
 }

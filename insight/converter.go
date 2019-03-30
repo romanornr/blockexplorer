@@ -13,6 +13,11 @@ import (
 	"github.com/romanornr/cyberchain/mongodb"
 )
 
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
+
 func ConvertToInsightBlock(block *btcjson.GetBlockVerboseResult) (*insightjson.BlockResult, error) {
 
 	insightBlock := insightjson.BlockResult{
@@ -83,7 +88,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 
 		// retrieval for vin[] to get addr and value // TODO What if there are multiple vins?
 		vinHash, _ := chainhash.NewHashFromStr(vin.Txid)
-		vinDbTx, err := mongodb.GetTransaction(*vinHash)
+		vinDbTx, err := dao.GetTransaction(*vinHash)
 		if err == nil {
 			if tx.Confirmations != 0 {
 				i := insightVin.Vout
@@ -156,7 +161,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 			}
 
 			txHash, _ := chainhash.NewHashFromStr(vin.Txid)
-			tx, err := mongodb.GetTransaction(*txHash)
+			tx, err := dao.GetTransaction(*txHash)
 			if err == nil {
 				i := vin.Vout
 				tx.Vouts[i].SpentTxID = txNew.Txid
@@ -168,7 +173,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 				}
 
 				tx.Vouts[i].SpentHeight = txNew.Blockheight
-				go mongodb.UpdateTransaction(&tx)
+				go dao.UpdateTransaction(&tx)
 			}
 		}
 	}

@@ -20,9 +20,8 @@ var dao = MongoDAO{
 
 //drop if database exist so tests can start clean
 func TestDropDatabase(t *testing.T) {
-	//session := GetSession()
+	dao.Connect()
 
-	log.Println("Dropping old existing database")
 	dao.DropDatabase()
 
 	databases, _ := db.Session.DatabaseNames()

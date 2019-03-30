@@ -36,12 +36,12 @@ func (dao *MongoDAO) Connect() {
 
 
 func (dao *MongoDAO) GetBlock(hash *chainhash.Hash) (*insightjson.BlockResult, error) {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	result := new(insightjson.BlockResult)
 
-	err := db.C(BLOCKS).Find(bson.M{"hash": hash.String()}).One(&result)
+	err := sessionCopy.DB(db.Name).C(BLOCKS).Find(bson.M{"hash": hash.String()}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -52,15 +52,15 @@ func (dao *MongoDAO) GetBlock(hash *chainhash.Hash) (*insightjson.BlockResult, e
 
 func (dao *MongoDAO) AddBlock(Block *insightjson.BlockResult) error {
 
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	index := mgo.Index{
 		Key:    []string{"hash"},
 		Unique: true,
 	}
 
-	err := db.C(BLOCKS).EnsureIndex(index)
+	err := sessionCopy.DB(db.Name).C(BLOCKS).EnsureIndex(index)
 	if err != nil {
 		log.Panicf("%s\n", err)
 	}
@@ -68,8 +68,8 @@ func (dao *MongoDAO) AddBlock(Block *insightjson.BlockResult) error {
 	err = db.C(BLOCKS).Insert(Block)
 
 	if err != nil {
-		log.Warningf("Block with hash %s did not get inserted\n", Block.Hash)
-		return fmt.Errorf("Block with hash %s did not get inserted\n", Block.Hash)
+		log.Warningf("Adding block %s %s\n", Block.Hash, err)
+		return err
 	}
 
 	return err
@@ -77,17 +77,18 @@ func (dao *MongoDAO) AddBlock(Block *insightjson.BlockResult) error {
 
 // get the latest block and return it in insightjson format
 func (dao *MongoDAO) GetLastBlock() (insightjson.BlockResult, error) {
-	dao.Connect()
-	defer db.Session.Close()
+
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	result := insightjson.BlockResult{}
 
-	dbSize, err := db.C(BLOCKS).Count()
+	dbSize, err := sessionCopy.DB(db.Name).C(BLOCKS).Count()
 	if err != nil {
 		return result, err
 	}
 
-	err = db.C(BLOCKS).Find(nil).Skip(dbSize - 1).One(&result)
+	err = sessionCopy.DB(db.Name).C(BLOCKS).Find(nil).Skip(dbSize - 1).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -97,23 +98,23 @@ func (dao *MongoDAO) GetLastBlock() (insightjson.BlockResult, error) {
 
 // add transaction to the database. Make sure the txid is unique.
 func (dao *MongoDAO) AddTransaction(transaction *insightjson.Tx) error {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	index := mgo.Index{
 		Key:    []string{"txid"},
 		Unique: true,
 	}
 
-	err := db.C(TRANSACTIONS).EnsureIndex(index)
+	err := sessionCopy.DB(db.Name).C(TRANSACTIONS).EnsureIndex(index)
 	if err != nil {
 		panic(err)
 	}
 
-	err = db.C(TRANSACTIONS).Insert(transaction)
+	err = sessionCopy.DB(db.Name).C(TRANSACTIONS).Insert(transaction)
 
 	if err != nil {
-		panic(err)
+		log.Warnf("Adding Transaction: %s\n", err)
 	}
 
 	return err
@@ -121,12 +122,12 @@ func (dao *MongoDAO) AddTransaction(transaction *insightjson.Tx) error {
 
 // Find transactions by txid in the database
 func (dao *MongoDAO) GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	result := insightjson.Tx{}
 
-	err := db.C(TRANSACTIONS).Find(bson.M{"txid": txid.String()}).One(&result)
+	err := sessionCopy.DB(db.Name).C(TRANSACTIONS).Find(bson.M{"txid": txid.String()}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -137,8 +138,8 @@ func (dao *MongoDAO) GetTransaction(txid chainhash.Hash) (insightjson.Tx, error)
 
 // delete the database. Only use for testing
 func (dao *MongoDAO) DropDatabase() error {
-	dao.Connect()
-	//defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	err := db.Session.DB(db.Name).DropDatabase()
 	//err := session.DB(Database).DropDatabase()
@@ -150,11 +151,10 @@ func (dao *MongoDAO) DropDatabase() error {
 
 // add addressInfo to the database
 func (dao *MongoDAO) AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
-
-	err := db.C(ADDRESSINFO).Insert(AddressInfo)
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Insert(AddressInfo)
 	if err != nil {
 		log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
 	}
@@ -163,12 +163,12 @@ func (dao *MongoDAO) AddAddressInfo(AddressInfo *insightjson.AddressInfo) error 
 }
 
 func (dao *MongoDAO) GetAddressInfo(address string) (insightjson.AddressInfo, error) {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	result := insightjson.AddressInfo{}
 
-	err := db.C(ADDRESSINFO).Find(bson.M{"addrStr": address}).One(&result)
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Find(bson.M{"addrStr": address}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -177,9 +177,8 @@ func (dao *MongoDAO) GetAddressInfo(address string) (insightjson.AddressInfo, er
 }
 
 func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool, txid string) error {
-
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
@@ -190,7 +189,7 @@ func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo,
 		AddressInfo.UnconfirmedBalance -= btcutil.Amount(sentSat).ToBTC()
 		AddressInfo.UnconfirmedBalanceSat = sentSat
 		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
-		err := db.C(ADDRESSINFO).Update(colQuerier, change)
+		err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
 		if err != nil {
 			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 		}
@@ -204,7 +203,7 @@ func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo,
 	AddressInfo.Balance -= btcutil.Amount(sentSat).ToBTC()
 
 	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
-	err := db.C(ADDRESSINFO).Update(colQuerier, change)
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
 	if err != nil {
 		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 	}
@@ -213,9 +212,8 @@ func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo,
 
 // Update addressInfo by searching with the address string
 func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
-
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
@@ -226,7 +224,7 @@ func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressI
 		AddressInfo.UnconfirmedBalance += btcutil.Amount(receivedSat).ToBTC()
 		AddressInfo.UnconfirmedBalanceSat += receivedSat
 		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
-		err := db.C(ADDRESSINFO).Update(colQuerier, change)
+		err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
 		if err != nil {
 			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 		}
@@ -240,7 +238,7 @@ func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressI
 	AddressInfo.Balance += btcutil.Amount(receivedSat).ToBTC()
 
 	change := bson.M{"$set": bson.M{"totalReceivedSat": AddressInfo.TotalReceivedSat, "totalReceived": AddressInfo.TotalReceived, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
-	err := db.C(ADDRESSINFO).Update(colQuerier, change)
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
 	if err != nil {
 		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 	}
@@ -249,12 +247,12 @@ func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressI
 
 // Update Transaction by txid
 func (dao *MongoDAO) UpdateTransaction(tx *insightjson.Tx) error {
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	selector := bson.M{"txid": tx.Txid}
 
-	_, err := db.C(TRANSACTIONS).Upsert(selector, tx)
+	_, err := sessionCopy.DB(db.Name).C(TRANSACTIONS).Upsert(selector, tx)
 	if err != nil {
 		log.Printf("Error updating spentDetails in mongodb: %s", err)
 	}
@@ -267,9 +265,8 @@ func (dao *MongoDAO) UpdateTransaction(tx *insightjson.Tx) error {
 // get the tx info from the database and check for the vouts
 // example: https://explorer.viacoin.org/api/addr/VmkyKgGBWDpcnFCtw8rvcYqg8xr7U4Ubzx/utxo
 func (dao *MongoDAO) GetAddressUTXO(address string) []insightjson.UnpsentOutput {
-
-	dao.Connect()
-	defer db.Session.Close()
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
 
 	utxo := []insightjson.UnpsentOutput{}
 

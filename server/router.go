@@ -19,6 +19,11 @@ import (
 var coin = viper.GetString("coin.name")
 var network = viper.GetString("coin.symbol")
 
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
+
 // createRouter creates and returns a router.
 func createRouter() *httprouter.Router {
 
@@ -111,12 +116,7 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	dao := mongodb.BlocksDAO{
-		"127.0.0.1",
-		"viacoin",
-	}
-
-	block, err := dao.Find(hash)
+	block, err := dao.GetBlock(hash)
 	if err != nil {
 		fmt.Fprintf(w, "Not found")
 		return
@@ -161,7 +161,7 @@ func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Para
 	txid := ps.ByName("txid")
 	txhash, _ := chainhash.NewHashFromStr(txid)
 
-	tx, err := mongodb.GetTransaction(*txhash)
+	tx, err := dao.GetTransaction(*txhash)
 	if err != nil {
 		fmt.Fprintf(w, "Not found")
 		return
@@ -172,7 +172,7 @@ func getTransaction(w http.ResponseWriter, req *http.Request, ps httprouter.Para
 func getAddressInfo(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	address := ps.ByName("addr")
 
-	addressInfo, err := mongodb.GetAddressInfo(address)
+	addressInfo, err := dao.GetAddressInfo(address)
 	if err != nil {
 		fmt.Println("shit")
 	}
@@ -181,6 +181,6 @@ func getAddressInfo(w http.ResponseWriter, req *http.Request, ps httprouter.Para
 
 func getAddressUtxo(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	address := ps.ByName("addr")
-	utxo := mongodb.GetAddressUTXO(address)
+	utxo := dao.GetAddressUTXO(address)
 	json.NewEncoder(w).Encode(utxo)
 }

@@ -11,6 +11,11 @@ import (
 	"github.com/zeromq/goczmq"
 )
 
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
+
 // listen to ZMQ endpoint and check for message length if it's a hash
 // When a new Block is available the function isSynced() will be called
 // isSynced() return the new block from RPC and an error message
@@ -37,10 +42,10 @@ func BlockNotify() {
 
 		//lenght of a hash
 		if len(msg) == 32 {
-			block, _, blocksBehind, err := isSyned()
-			if err != nil {
+			block, _, blocksBehind, _ := isSyned()
+			//if err != nil {
 				go notification.ProcessBlock(block)
-			}
+			//}
 			log.WithFields(log.Fields{
 				"block height": block.Height,
 				"block hash":   block.Hash,
@@ -62,7 +67,7 @@ func isSyned() (bestBlock *btcjson.GetBlockVerboseResult, synced bool, blocksBeh
 		return block, false, int64(0), fmt.Errorf("RPC call failed to get latest block: %s\n", err)
 	}
 
-	lastBlockInDb, err := mongodb.GetLastBlock()
+	lastBlockInDb, err := dao.GetLastBlock()
 	if err != nil {
 		return block, false, int64(0), fmt.Errorf("failed to retrieve last block from database: %s\n", err)
 	}

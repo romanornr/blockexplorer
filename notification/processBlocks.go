@@ -19,8 +19,12 @@ import (
 	"sync"
 )
 
-var db = mongodb.GetSession()
 var isMainChain bool
+
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
 
 func init() {
 	ParseJson()
@@ -79,7 +83,7 @@ func ProcessBlock(block *btcjson.GetBlockVerboseResult) {
 	newBlock.Reward = subsidy.CalcViacoinBlockSubsidy(int32(newBlock.Height), isMainChain)
 	newBlock.IsMainChain = isMainChain
 
-	go mongodb.AddBlock(newBlock)
+	go dao.AddBlock(newBlock)
 
 	AddTransactions(txs, newBlock.Height) // this in a go routine def causes a race conditions
 }
@@ -130,7 +134,7 @@ func GetTx(block *btcjson.GetBlockVerboseResult) []*btcjson.TxRawResult {
 func AddTransactions(transactions []*btcjson.TxRawResult, blockheight int64) {
 	for _, transaction := range transactions {
 		newTx := insight.TxConverter(transaction, blockheight)
-		go mongodb.AddTransaction(&newTx[0])
+		go dao.AddTransaction(&newTx[0])
 		AddrIndex(&newTx[0]) //this in a go routine will cause a race condition
 	}
 }
@@ -139,13 +143,13 @@ func AddrIndex(tx *insightjson.Tx) {
 	//receive
 	for _, txVout := range tx.Vouts {
 		for _, voutAdress := range txVout.ScriptPubKey.Addresses {
-			dbAddrInfo, err := mongodb.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
+			dbAddrInfo, err := dao.GetAddressInfo(txVout.ScriptPubKey.Addresses[0])
 			if err != nil {
 				addressInfo := createAddressInfo(voutAdress, txVout, tx)
-				go mongodb.AddAddressInfo(addressInfo)
+				go dao.AddAddressInfo(addressInfo)
 			} else {
 				value := int64(txVout.Value * 100000000) // satoshi value to coin value
-				go mongodb.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
+				go dao.UpdateAddressInfoReceived(&dbAddrInfo, value, true, tx.Txid)
 			}
 		}
 	}
@@ -153,11 +157,11 @@ func AddrIndex(tx *insightjson.Tx) {
 	//sent
 	for _, txVin := range tx.Vins {
 
-		dbAddrInfo, err := mongodb.GetAddressInfo(txVin.Addr)
+		dbAddrInfo, err := dao.GetAddressInfo(txVin.Addr)
 		value := int64(txVin.ValueSat)
 
 		if err == nil {
-			go mongodb.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
+			go dao.UpdateAddressInfoSent(&dbAddrInfo, value, true, tx.Txid)
 		}
 	}
 }

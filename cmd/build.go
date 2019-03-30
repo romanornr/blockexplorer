@@ -12,11 +12,17 @@ import (
 	"github.com/romanornr/cyberchain/mongodb"
 )
 
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
+
 // This function can be exected with: go run cmd/build.go
 // this will build the entire database with blocks, transactions etc
 func main() {
 
-	mongodb.DropDatabase() // delete existing database first
+	dao.Connect()
+	dao.DropDatabase() // delete existing database first
 
 	tip, err := blockdata.GetLatestBlock()
 	if err != nil {

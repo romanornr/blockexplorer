@@ -6,28 +6,31 @@
 package rebuilddb
 
 import (
-	"fmt"
 	"github.com/romanornr/cyberchain/mongodb"
 	"log"
 	"testing"
 )
 
+var dao = mongodb.MongoDAO{
+	"127.0.0.1",
+	"viacoin",
+}
+
 func TestDropDatabase(t *testing.T) {
-	mongodb.DropDatabase()
-	session := mongodb.GetSession()
+	dao.Connect()
 
 	log.Println("Dropping old existing database")
-	mongodb.DropDatabase()
+	dao.DropDatabase()
 
-	databases, _ := session.DatabaseNames()
-
-	for _, databases := range databases {
-		if databases == "Viacoin" {
-			fmt.Println("found")
-			t.Error("Old database still exists. Failed dropping.")
-		}
-	}
-	log.Println("Success dropped old database")
+	//databases, _ := db.Session.DatabaseNames()
+	//
+	//for _, databases := range databases {
+	//	if databases == "Viacoin" {
+	//		fmt.Println("found")
+	//		t.Error("Old database still exists. Failed dropping.")
+	//	}
+	//}
+	//log.Println("Success dropped old database")
 }
 
 func TestBuildDatabase(t *testing.T) {
@@ -46,7 +49,7 @@ func TestBuildDatabase(t *testing.T) {
 //	}
 //}
 
-//func BenchmarkBuildDatabase(b *testing.B) {
-//	mongodb.DropDatabase()
-//	BuildDatabase()
-//}
+func BenchmarkBuildDatabase(b *testing.B) {
+	dao.DropDatabase()
+	BuildDatabase(2000)
+}

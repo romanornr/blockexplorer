@@ -111,7 +111,12 @@ func getBlock(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		log.Printf("could not convert string to hash: %s\n", err)
 	}
 
-	block, err := mongodb.GetBlock(*hash)
+	dao := mongodb.BlocksDAO{
+		"127.0.0.1",
+		"viacoin",
+	}
+
+	block, err := dao.Find(hash)
 	if err != nil {
 		fmt.Fprintf(w, "Not found")
 		return

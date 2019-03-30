@@ -115,6 +115,28 @@ func TestGetBlock(t *testing.T) {
 	log.Printf("Success: Block with hash %s succesfully inserted & found", result.Hash)
 }
 
+
+var dao = BlocksDAO{
+"localhost",
+"viacoin",
+}
+
+func TestBlocksDAO_Find(t *testing.T) {
+
+	blockhash, _ := chainhash.NewHashFromStr("45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc")
+
+	result, err := dao.Find(blockhash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := "45c2eb3f3ca602e36b9fac0c540cf2756f1d41719b4be25adb013f87bafee7bc"
+
+	if result.Hash != expect {
+		t.Errorf("Expected: %s \nGot: %s\n", expect, result.Hash)
+	}
+
+}
+
 func TestGetLastBlock(t *testing.T) {
 	latestblock, err := GetLastBlock()
 	if err != nil {

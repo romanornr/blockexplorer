@@ -17,6 +17,37 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
+type BlocksDAO struct {
+	Server   string
+	Database string
+}
+
+var db *mgo.Database
+var dialInfo = viaDialInfo
+
+func (b *BlocksDAO) Connect() {
+	session, err := mgo.DialWithInfo(dialInfo)
+	if err != nil {
+		session.Close()
+		log.Panicf("failed to open mongodb session: %s\n", err)
+	}
+	db = session.DB(viaDialInfo.Database)
+}
+
+func (b *BlocksDAO) Find(hash *chainhash.Hash) (insightjson.BlockResult, error) {
+	b.Connect()
+	defer db.Session.Close()
+
+	result := insightjson.BlockResult{}
+
+	err := db.C(BLOCKS).Find(bson.M{"hash": hash.String()}).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, err
+}
+
 const (
 	MongoDBHosts = "localhost"
 	Database     = "viacoin"

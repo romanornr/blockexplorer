@@ -16,3 +16,6 @@ rpc:
 
 zmq:
   endpoint: tcp://127.0.0.1:28332
+
+mongo:
+  ip: 127.0.0.1

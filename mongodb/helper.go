@@ -24,9 +24,9 @@ const (
 	timeout60 = 60 * time.Second
 
 	// Collection names
-	TRANSACTIONS         = "Transactions"
-	BLOCKS      = "Blocks"
-	ADDRESSINFO = "AddressInfo"
+	TRANSACTIONS = "Transactions"
+	BLOCKS       = "Blocks"
+	ADDRESSINFO  = "AddressInfo"
 )
 
 var (

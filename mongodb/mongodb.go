@@ -8,8 +8,6 @@ package mongodb
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"time"
-
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
 	"github.com/globalsign/mgo"
@@ -17,7 +15,7 @@ import (
 	"github.com/romanornr/cyberchain/insightjson"
 )
 
-type BlocksDAO struct {
+type MongoDAO struct {
 	Server   string
 	Database string
 }
@@ -25,20 +23,23 @@ type BlocksDAO struct {
 var db *mgo.Database
 var dialInfo = viaDialInfo
 
-func (b *BlocksDAO) Connect() {
+func (dao *MongoDAO) Connect() {
 	session, err := mgo.DialWithInfo(dialInfo)
 	if err != nil {
 		session.Close()
 		log.Panicf("failed to open mongodb session: %s\n", err)
 	}
+
+	session.SetMode(mgo.Monotonic, true)
 	db = session.DB(viaDialInfo.Database)
 }
 
-func (b *BlocksDAO) Find(hash *chainhash.Hash) (insightjson.BlockResult, error) {
-	b.Connect()
+
+func (dao *MongoDAO) GetBlock(hash *chainhash.Hash) (*insightjson.BlockResult, error) {
+	dao.Connect()
 	defer db.Session.Close()
 
-	result := insightjson.BlockResult{}
+	result := new(insightjson.BlockResult)
 
 	err := db.C(BLOCKS).Find(bson.M{"hash": hash.String()}).One(&result)
 	if err != nil {
@@ -48,108 +49,45 @@ func (b *BlocksDAO) Find(hash *chainhash.Hash) (insightjson.BlockResult, error) 
 	return result, err
 }
 
-const (
-	MongoDBHosts = "localhost"
-	Database     = "viacoin"
-)
 
-var session *mgo.Session
+func (dao *MongoDAO) AddBlock(Block *insightjson.BlockResult) error {
 
-var mongoDBDialInfo = &mgo.DialInfo{
-	Addrs:    []string{MongoDBHosts},
-	Timeout:  60 * time.Second,
-	Database: Database,
-}
-
-func GetSession() *mgo.Session {
-	if session == nil {
-		var err error
-		session, err = mgo.DialWithInfo(mongoDBDialInfo)
-		if err != nil {
-			session.Close()
-			log.Panicf("failed to open mongodb session: %s\n", err)
-		}
-	}
-	return session
-}
-
-// delete the database. Only use for testing
-func DropDatabase() error {
-	err := session.DB(Database).DropDatabase()
-	if err != nil {
-		panic(err)
-	}
-	return err
-}
-
-// add Blocks to the database. Collection name: Blocks
-func AddBlock(Block *insightjson.BlockResult) error {
-	GetSession()
-	//defer session.Close()
-
-	collection := session.DB(Database).C("Blocks")
+	dao.Connect()
+	defer db.Session.Close()
 
 	index := mgo.Index{
 		Key:    []string{"hash"},
 		Unique: true,
 	}
 
-	err := collection.EnsureIndex(index)
+	err := db.C(BLOCKS).EnsureIndex(index)
 	if err != nil {
-		panic(err)
+		log.Panicf("%s\n", err)
 	}
 
-	err = collection.Insert(Block)
+	err = db.C(BLOCKS).Insert(Block)
 
 	if err != nil {
-		log.Warningf("Block with hash %s did not get inserted", Block.Hash)
-		return fmt.Errorf("Block with hash %s did not get inserted", Block.Hash)
+		log.Warningf("Block with hash %s did not get inserted\n", Block.Hash)
+		return fmt.Errorf("Block with hash %s did not get inserted\n", Block.Hash)
 	}
 
 	return err
 }
 
-// get block by hash
-func GetBlock(hash chainhash.Hash) (insightjson.BlockResult, error) {
-	GetSession()
-	collection := session.DB(Database).C("Blocks")
-
-	result := insightjson.BlockResult{}
-
-	err := collection.Find(bson.M{"hash": hash.String()}).One(&result)
-	if err != nil {
-		return result, err
-	}
-
-	return result, err
-}
-
-// get block by blockheight
-func FetchBlockHashByBlockHeight(blockheight int64) insightjson.BlockResult {
-	GetSession()
-	collection := session.DB(Database).C("Blocks")
-	result := insightjson.BlockResult{}
-
-	err := collection.Find(bson.M{"height": blockheight}).One(&result)
-	if err != nil {
-		panic(err)
-	}
-
-	return result
-}
-
 // get the latest block and return it in insightjson format
-func GetLastBlock() (insightjson.BlockResult, error) {
-	GetSession()
-	collection := session.DB(Database).C("Blocks")
+func (dao *MongoDAO) GetLastBlock() (insightjson.BlockResult, error) {
+	dao.Connect()
+	defer db.Session.Close()
+
 	result := insightjson.BlockResult{}
 
-	dbSize, err := collection.Count()
+	dbSize, err := db.C(BLOCKS).Count()
 	if err != nil {
 		return result, err
 	}
 
-	err = collection.Find(nil).Skip(dbSize - 1).One(&result)
+	err = db.C(BLOCKS).Find(nil).Skip(dbSize - 1).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -157,21 +95,22 @@ func GetLastBlock() (insightjson.BlockResult, error) {
 	return result, err
 }
 
-func AddTransaction(transaction *insightjson.Tx) error {
-	GetSession()
-	collection := session.DB(Database).C("Transactions")
+// add transaction to the database. Make sure the txid is unique.
+func (dao *MongoDAO) AddTransaction(transaction *insightjson.Tx) error {
+	dao.Connect()
+	defer db.Session.Close()
 
 	index := mgo.Index{
 		Key:    []string{"txid"},
 		Unique: true,
 	}
 
-	err := collection.EnsureIndex(index)
+	err := db.C(TRANSACTIONS).EnsureIndex(index)
 	if err != nil {
 		panic(err)
 	}
 
-	err = collection.Insert(transaction)
+	err = db.C(TRANSACTIONS).Insert(transaction)
 
 	if err != nil {
 		panic(err)
@@ -180,13 +119,14 @@ func AddTransaction(transaction *insightjson.Tx) error {
 	return err
 }
 
-func GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
-	GetSession()
-	collection := session.DB(Database).C("Transactions")
+// Find transactions by txid in the database
+func (dao *MongoDAO) GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
+	dao.Connect()
+	defer db.Session.Close()
 
 	result := insightjson.Tx{}
 
-	err := collection.Find(bson.M{"txid": txid.String()}).One(&result)
+	err := db.C(TRANSACTIONS).Find(bson.M{"txid": txid.String()}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -194,27 +134,41 @@ func GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
 	return result, err
 }
 
-func AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
-	GetSession()
-	collection := session.DB(Database).C("AddressInfo")
 
-	//if AddressInfo.Address != "" { //check if address is not empty
-	err := collection.Insert(AddressInfo)
+// delete the database. Only use for testing
+func (dao *MongoDAO) DropDatabase() error {
+	dao.Connect()
+	//defer db.Session.Close()
+
+	err := db.Session.DB(db.Name).DropDatabase()
+	//err := session.DB(Database).DropDatabase()
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
+
+// add addressInfo to the database
+func (dao *MongoDAO) AddAddressInfo(AddressInfo *insightjson.AddressInfo) error {
+	dao.Connect()
+	defer db.Session.Close()
+
+
+	err := db.C(ADDRESSINFO).Insert(AddressInfo)
 	if err != nil {
 		log.Printf("Error not able to add AddressInfo to database collection AddressInfo: %s", err)
-		//}
 	}
 
 	return nil
 }
 
-func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
-	GetSession()
-	collection := session.DB(Database).C("AddressInfo")
+func (dao *MongoDAO) GetAddressInfo(address string) (insightjson.AddressInfo, error) {
+	dao.Connect()
+	defer db.Session.Close()
 
 	result := insightjson.AddressInfo{}
 
-	err := collection.Find(bson.M{"addrStr": address}).One(&result)
+	err := db.C(ADDRESSINFO).Find(bson.M{"addrStr": address}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -222,10 +176,11 @@ func GetAddressInfo(address string) (insightjson.AddressInfo, error) {
 	return result, err
 }
 
-func UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool, txid string) error {
+func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool, txid string) error {
 
-	GetSession()
-	collection := session.DB(Database).C("AddressInfo")
+	dao.Connect()
+	defer db.Session.Close()
+
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
 	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO: change order
@@ -235,7 +190,7 @@ func UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, 
 		AddressInfo.UnconfirmedBalance -= btcutil.Amount(sentSat).ToBTC()
 		AddressInfo.UnconfirmedBalanceSat = sentSat
 		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
-		err := collection.Update(colQuerier, change)
+		err := db.C(ADDRESSINFO).Update(colQuerier, change)
 		if err != nil {
 			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 		}
@@ -249,17 +204,19 @@ func UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, 
 	AddressInfo.Balance -= btcutil.Amount(sentSat).ToBTC()
 
 	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
-	err := collection.Update(colQuerier, change)
+	err := db.C(ADDRESSINFO).Update(colQuerier, change)
 	if err != nil {
 		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 	}
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }
 
-func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
+// Update addressInfo by searching with the address string
+func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
 
-	GetSession()
-	collection := session.DB(Database).C("AddressInfo")
+	dao.Connect()
+	defer db.Session.Close()
+
 	colQuerier := bson.M{"addrStr": AddressInfo.Address}
 
 	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO change order
@@ -269,7 +226,7 @@ func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat
 		AddressInfo.UnconfirmedBalance += btcutil.Amount(receivedSat).ToBTC()
 		AddressInfo.UnconfirmedBalanceSat += receivedSat
 		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
-		err := collection.Update(colQuerier, change)
+		err := db.C(ADDRESSINFO).Update(colQuerier, change)
 		if err != nil {
 			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 		}
@@ -283,19 +240,21 @@ func UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat
 	AddressInfo.Balance += btcutil.Amount(receivedSat).ToBTC()
 
 	change := bson.M{"$set": bson.M{"totalReceivedSat": AddressInfo.TotalReceivedSat, "totalReceived": AddressInfo.TotalReceived, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
-	err := collection.Update(colQuerier, change)
+	err := db.C(ADDRESSINFO).Update(colQuerier, change)
 	if err != nil {
 		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
 	}
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }
 
-func UpdateTransaction(tx *insightjson.Tx) error {
-	GetSession()
-	collection := session.DB(Database).C("Transactions")
+// Update Transaction by txid
+func (dao *MongoDAO) UpdateTransaction(tx *insightjson.Tx) error {
+	dao.Connect()
+	defer db.Session.Close()
+
 	selector := bson.M{"txid": tx.Txid}
 
-	_, err := collection.Upsert(selector, tx)
+	_, err := db.C(TRANSACTIONS).Upsert(selector, tx)
 	if err != nil {
 		log.Printf("Error updating spentDetails in mongodb: %s", err)
 	}
@@ -307,11 +266,14 @@ func UpdateTransaction(tx *insightjson.Tx) error {
 // by getting the addressInfo of an address and aggregate over all transaction id's from the past
 // get the tx info from the database and check for the vouts
 // example: https://explorer.viacoin.org/api/addr/VmkyKgGBWDpcnFCtw8rvcYqg8xr7U4Ubzx/utxo
-func GetAddressUTXO(address string) []insightjson.UnpsentOutput {
+func (dao *MongoDAO) GetAddressUTXO(address string) []insightjson.UnpsentOutput {
+
+	dao.Connect()
+	defer db.Session.Close()
 
 	utxo := []insightjson.UnpsentOutput{}
 
-	addressInfo, err := GetAddressInfo(address)
+	addressInfo, err := dao.GetAddressInfo(address)
 	if err != nil {
 		return utxo
 	}
@@ -325,7 +287,7 @@ func GetAddressUTXO(address string) []insightjson.UnpsentOutput {
 			return utxo
 		}
 
-		tx, err := GetTransaction(*hash)
+		tx, err := dao.GetTransaction(*hash)
 		if err != nil {
 			fmt.Errorf("failed to get transaction from mongodb: %s", err)
 		}

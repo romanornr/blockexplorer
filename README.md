@@ -104,6 +104,7 @@ and make sure mongodb is running before you start.
 - [ ] Adress validation
 - [ ] Subsidy calculation for different coins instead of only viacoin
 - [ ] API endpoint block raw
+- [ ] Mempool unconfirmed transactions
 - [ ] API block summaries
 - [ ] API address properties
 - [ ] API query multiple addresses

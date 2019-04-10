@@ -67,7 +67,7 @@ zmq:
 cd ~/go/src/gitlab.com/
 ```
 ```bash
-git clone git@gitlab.com:romanornr/cyberchain.git
+git clone git@gitlab.com:romanornr/blockexplorer.git
 ```
 
 ```bash

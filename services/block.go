@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/romanornr/blockexplorer/insightjson"
 )
 
 type blockDAO interface {

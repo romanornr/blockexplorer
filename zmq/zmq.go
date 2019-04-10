@@ -4,9 +4,9 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/mongodb"
-	"github.com/romanornr/cyberchain/notification"
+	"github.com/romanornr/blockexplorer/blockdata"
+	"github.com/romanornr/blockexplorer/mongodb"
+	"github.com/romanornr/blockexplorer/notification"
 	"github.com/spf13/viper"
 	"github.com/zeromq/goczmq"
 )

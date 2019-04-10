@@ -6,17 +6,22 @@
 package Reorg
 
 import (
-	"github.com/romanornr/cyberchain/mongodb"
-	"github.com/romanornr/cyberchain/notification"
+	"github.com/romanornr/blockexplorer/mongodb"
+	"github.com/romanornr/blockexplorer/notification"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/romanornr/cyberchain/blockdata"
+	"github.com/romanornr/blockexplorer/blockdata"
 )
 
+var dao = mongodb.MongoDAO{
+	"localhost",
+	"viacoin",
+}
+
 func BuildMockDatabase() {
-	mongodb.DropDatabase()
+	dao.DropDatabase()
 	for i := int64(1); i < 6; i++ {
 		blockhash, _ := blockdata.GetBlockHash(i)
 		block, _ := blockdata.GetBlock(blockhash)
@@ -60,7 +65,7 @@ func TestComparePreviousHash(t *testing.T) {
 		t.Errorf("Could not get block: %s via RPC", hashes[5])
 	}
 
-	reorg, _, _ := Check(block)
+	reorg, _, _ := Check(dao, block)
 
 	if reorg != false {
 		t.Errorf("Did not expect reorg: %s", err)
@@ -69,7 +74,7 @@ func TestComparePreviousHash(t *testing.T) {
 	//check if it detects a chain reorg
 	//blockhash, _ = chainhash.NewHashFromStr(hashes[2]) // check if blockhash is valid
 	//block, _ = blockdata.GetBlock(blockhash)
-	reorg, _, _ =Check(reorgBlock)
+	reorg, _, _ =Check(dao, reorgBlock)
 	if reorg != true {
 		t.Errorf("No chain reorg detected, however it was exected")
 	}

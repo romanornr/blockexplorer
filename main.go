@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/romanornr/cyberchain/server"
+	"github.com/romanornr/blockexplorer/server"
 )
 
 func main() {

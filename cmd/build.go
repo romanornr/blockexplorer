@@ -7,9 +7,9 @@ package main
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/romanornr/cyberchain/blockdata"
-	"github.com/romanornr/cyberchain/cmd/rebuilddb"
-	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/romanornr/blockexplorer/blockdata"
+	"github.com/romanornr/blockexplorer/cmd/rebuilddb"
+	"github.com/romanornr/blockexplorer/mongodb"
 )
 
 var dao = mongodb.MongoDAO{

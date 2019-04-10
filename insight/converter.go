@@ -9,8 +9,8 @@ import (
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
-	"github.com/romanornr/cyberchain/insightjson"
-	"github.com/romanornr/cyberchain/mongodb"
+	"github.com/romanornr/blockexplorer/insightjson"
+	"github.com/romanornr/blockexplorer/mongodb"
 )
 
 var dao = mongodb.MongoDAO{

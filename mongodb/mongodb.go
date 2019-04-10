@@ -12,7 +12,7 @@ import (
 	"github.com/btcsuite/btcutil"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"github.com/romanornr/cyberchain/insightjson"
+	"github.com/romanornr/blockexplorer/insightjson"
 )
 
 type MongoDAO struct {

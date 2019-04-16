@@ -121,13 +121,18 @@ func (dao *MongoDAO) AddTransaction(transaction *insightjson.Tx) error {
 }
 
 // Find transactions by txid in the database
-func (dao *MongoDAO) GetTransaction(txid chainhash.Hash) (insightjson.Tx, error) {
+func (dao *MongoDAO) GetTransaction(txid string) (insightjson.Tx, error) {
 	sessionCopy := db.Session.Copy()
 	defer sessionCopy.Close()
 
+	tx, err := chainhash.NewHashFromStr(txid)
+	if err != nil {
+		log.Warnf("failed convert txid string to hash: %s\n", err)
+	}
+
 	result := insightjson.Tx{}
 
-	err := sessionCopy.DB(db.Name).C(TRANSACTIONS).Find(bson.M{"txid": txid.String()}).One(&result)
+	err = sessionCopy.DB(db.Name).C(TRANSACTIONS).Find(bson.M{"txid": tx.String()}).One(&result)
 	if err != nil {
 		return result, err
 	}
@@ -210,6 +215,7 @@ func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo,
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }
 
+
 // Update addressInfo by searching with the address string
 func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
 	sessionCopy := db.Session.Copy()
@@ -236,6 +242,41 @@ func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressI
 	AddressInfo.TotalReceived += btcutil.Amount(receivedSat).ToBTC()
 	AddressInfo.BalanceSat += receivedSat
 	AddressInfo.Balance += btcutil.Amount(receivedSat).ToBTC()
+
+	change := bson.M{"$set": bson.M{"totalReceivedSat": AddressInfo.TotalReceivedSat, "totalReceived": AddressInfo.TotalReceived, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
+	if err != nil {
+		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	}
+	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
+}
+
+// Update addressInfo by searching with the address string
+func (dao *MongoDAO) RollbackAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
+
+	colQuerier := bson.M{"addrStr": AddressInfo.Address}
+
+	//AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO change order
+
+	if !confirmed {
+		AddressInfo.UnconfirmedTxAppearances -= 1
+		AddressInfo.UnconfirmedBalance -= btcutil.Amount(receivedSat).ToBTC()
+		AddressInfo.UnconfirmedBalanceSat -= receivedSat
+		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
+		err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
+		if err != nil {
+			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+		}
+		return err
+	}
+
+	AddressInfo.TxAppearances -= 1
+	AddressInfo.TotalReceivedSat -= receivedSat
+	AddressInfo.TotalReceived -= btcutil.Amount(receivedSat).ToBTC()
+	AddressInfo.BalanceSat -= receivedSat
+	AddressInfo.Balance -= btcutil.Amount(receivedSat).ToBTC()
 
 	change := bson.M{"$set": bson.M{"totalReceivedSat": AddressInfo.TotalReceivedSat, "totalReceived": AddressInfo.TotalReceived, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
 	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
@@ -284,7 +325,7 @@ func (dao *MongoDAO) GetAddressUTXO(address string) []insightjson.UnpsentOutput 
 			return utxo
 		}
 
-		tx, err := dao.GetTransaction(*hash)
+		tx, err := dao.GetTransaction(hash.String())
 		if err != nil {
 			fmt.Errorf("failed to get transaction from mongodb: %s", err)
 		}

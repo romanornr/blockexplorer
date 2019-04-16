@@ -7,7 +7,6 @@ package insight
 
 import (
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
 	"github.com/romanornr/blockexplorer/insightjson"
 	"github.com/romanornr/blockexplorer/mongodb"
@@ -87,8 +86,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 		}
 
 		// retrieval for vin[] to get addr and value // TODO What if there are multiple vins?
-		vinHash, _ := chainhash.NewHashFromStr(vin.Txid)
-		vinDbTx, err := dao.GetTransaction(*vinHash)
+		vinDbTx, err := dao.GetTransaction(vin.Txid)
 		if err == nil {
 			if tx.Confirmations != 0 {
 				i := insightVin.Vout
@@ -160,8 +158,7 @@ func ConvertToInsightTransaction(tx *btcjson.TxRawResult, blockheight int64, noA
 				continue
 			}
 
-			txHash, _ := chainhash.NewHashFromStr(vin.Txid)
-			tx, err := dao.GetTransaction(*txHash)
+			tx, err := dao.GetTransaction(vin.Txid)
 			if err == nil {
 				i := vin.Vout
 				tx.Vouts[i].SpentTxID = txNew.Txid

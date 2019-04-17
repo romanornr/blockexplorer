@@ -7,6 +7,7 @@ package Reorg
 
 import (
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/romanornr/blockexplorer/insightjson"
 	"github.com/romanornr/blockexplorer/mongodb"
 	"github.com/romanornr/blockexplorer/notification"
@@ -90,21 +91,25 @@ func TestComparePreviousHash(t *testing.T) {
 
 var tables = []struct {
 	blockHeight int64
-	txHash      string
 }{
-	{blockHeight: 5422072, txHash: "0d6cb80555ab270ce45a8cf6d513578f96628163b5052da3a5fe28e546a2570b"},
-	{blockHeight: 5422822, txHash: "63981480a2e6c7ca75237e8e4a5d14660f6ff0fd53f3d6856b204f347b2a2c56"},
-	{blockHeight: 5423010, txHash: "e8f1aa82f2000815886c28008b4c13bda49b661445b484b1cc4a7d52178cc55b"},
-	{blockHeight: 5425232, txHash: "28381852caa416611568221af6a6308d711ed5bda258311a3ffed985e6fe48fd"},
-	{blockHeight: 5455537, txHash: "8aeaea3b4a4f6c4a6401f380ea3c7afe5c2dd50b5cf274c4f8af7620bd017801"},
-	{blockHeight: 5473972, txHash: "1ca46b9f788848b7d9199b046ae2c373176a61e661b45d06474607691e6a394b"},
-	{blockHeight: 5590354, txHash: "44b01ff4f9e745c4edd57967a50557987318e35ccde86cb3e4e37d5fd65bd254"},
-	//{blockHeight: 5671670, txHash: "a94a1e61a66fd371e00fcbd7adf3fd2a0a5cba6bba3e2ff6502c9acef074ce56"},
+	{blockHeight: 5422072},
+	{blockHeight: 5422822},
+	{blockHeight: 5423010},
+	{blockHeight: 5425232},
+	{blockHeight: 5455537},
+	{blockHeight: 5473972},
+	{blockHeight: 5590354},
+	{blockHeight: 5671670},
+	{blockHeight: 5891328},
+	{blockHeight: 6075611},
+	{blockHeight: 6075728},
+	{blockHeight: 6075872},
+	{blockHeight: 6142214},
 }
 
-// Here we use this address for rollbacks
-// https://chainz.cryptoid.info/via/address.dws?369935.htm
-func TestRollbackTransaction(t *testing.T) {
+func TestRollbackTipTransaction(t *testing.T) {
+
+	dao.DropDatabase()
 
 	//adding blocks
 	for _, table := range tables {
@@ -113,38 +118,84 @@ func TestRollbackTransaction(t *testing.T) {
 		notification.ProcessBlock(block)
 	}
 
+	addr, err := dao.GetAddressInfo("Ea6aiVS5dGWqVtQ4Akd9KCPw5HFmTbBPvX")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	logrus.Infof("address balance before rollbacks: %.8f\n", addr.Balance)
+
+	if addr.BalanceSat != 534180377091241 {
+		t.Errorf("Expected: %f, actual: %f\n",534180377091241, addr.Balance)
+	}
+
+	// rolling back block 6142214
+	blockHash, _ := blockdata.GetBlockHash(6142214)
+	block, _ := blockdata.GetBlock(blockHash)
+
+	btcjsonTransactions := notification.GetTx(block)
+
 	var transactions []insightjson.Tx
-
-	// getting transactions
-	for _, table := range tables {
-		blockHash, _ := blockdata.GetBlockHash(table.blockHeight)
-		block, _ := blockdata.GetBlock(blockHash)
-		btcjsonTransactions := notification.GetTx(block)
-
-		// get insightjson format transaction from database
-		for _, rawTransaction := range btcjsonTransactions {
-			tx, _ := dao.GetTransaction(rawTransaction.Txid)
-			transactions = append(transactions, tx)
-			fmt.Printf("%s\n", tx.Txid)
-		}
+	// get insightjson format transaction from database
+	for _, rawTransaction := range btcjsonTransactions {
+		tx, _ := dao.GetTransaction(rawTransaction.Txid)
+		transactions = append(transactions, tx)
 	}
 
 	for _, transaction := range transactions {
 		RollbackAddrIndex(dao, &transaction)
 	}
 
-
-
-	//txhash, _ := chainhash.NewHashFromStr("")
-	//txdb, _ := dao.GetTransaction(*txhash)
-	//fmt.Println(txdb.Vouts)
-	//
-	//RollbackAddrIndex(dao, &txdb)
-
-	addr, err := dao.GetAddressInfo("Ea6aiVS5dGWqVtQ4Akd9KCPw5HFmTbBPvX")
+	addr, err = dao.GetAddressInfo("Ea6aiVS5dGWqVtQ4Akd9KCPw5HFmTbBPvX")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("adress balance is: %f\n", addr.Balance)
+	logrus.Infof("address balance after rolling back tip: %f\n", addr.Balance)
 }
+
+//// Here we use this address for rollbacks
+//// https://chainz.cryptoid.info/via/address.dws?369935.htm
+//func TestRollbackTransaction(t *testing.T) {
+//
+//	dao.DropDatabase()
+//
+//	//adding blocks
+//	for _, table := range tables {
+//		blockHash, _ := blockdata.GetBlockHash(table.blockHeight)
+//		block, _ := blockdata.GetBlock(blockHash)
+//		notification.ProcessBlock(block)
+//	}
+//
+//	var transactions []insightjson.Tx
+//
+//	// getting transactions
+//	for _, table := range tables {
+//		blockHash, _ := blockdata.GetBlockHash(table.blockHeight)
+//		block, _ := blockdata.GetBlock(blockHash)
+//		btcjsonTransactions := notification.GetTx(block)
+//
+//		// get insightjson format transaction from database
+//		for _, rawTransaction := range btcjsonTransactions {
+//			tx, _ := dao.GetTransaction(rawTransaction.Txid)
+//			transactions = append(transactions, tx)
+//		}
+//	}
+//
+//	for _, transaction := range transactions {
+//		RollbackAddrIndex(dao, &transaction)
+//	}
+//
+//	//txhash, _ := chainhash.NewHashFromStr("")
+//	//txdb, _ := dao.GetTransaction(*txhash)
+//	//fmt.Println(txdb.Vouts)
+//	//
+//	//RollbackAddrIndex(dao, &txdb)
+//
+//	addr, err := dao.GetAddressInfo("Ea6aiVS5dGWqVtQ4Akd9KCPw5HFmTbBPvX")
+//	if err != nil {
+//		fmt.Println(err)
+//	}
+//
+//	fmt.Printf("adress balance is: %f\n", addr.Balance)
+//}

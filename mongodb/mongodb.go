@@ -215,6 +215,40 @@ func (dao *MongoDAO) UpdateAddressInfoSent(AddressInfo *insightjson.AddressInfo,
 	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
 }
 
+// Rollback address info sent. This is part of a chain rollback.
+func (dao *MongoDAO) RollbackAddressInfoSent(AddressInfo *insightjson.AddressInfo, sentSat int64, confirmed bool, txid string) error {
+	sessionCopy := db.Session.Copy()
+	defer sessionCopy.Close()
+
+	colQuerier := bson.M{"addrStr": AddressInfo.Address}
+
+	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO: change order
+
+	//if !confirmed { // TODO ?
+	//	AddressInfo.UnconfirmedTxAppearances -= 1
+	//	AddressInfo.UnconfirmedBalance -= btcutil.Amount(sentSat).ToBTC()
+	//	AddressInfo.UnconfirmedBalanceSat = sentSat
+	//	change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
+	//	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
+	//	if err != nil {
+	//		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	//	}
+	//	return err
+	//}
+
+	AddressInfo.TxAppearances -= 1
+	AddressInfo.TotalSentSat -= sentSat
+	AddressInfo.TotalSent -= btcutil.Amount(sentSat).ToBTC()
+	AddressInfo.BalanceSat += sentSat
+	AddressInfo.Balance += btcutil.Amount(sentSat).ToBTC()
+
+	change := bson.M{"$set": bson.M{"totalSentSat": AddressInfo.TotalSentSat, "totalSent": AddressInfo.TotalSent, "txAppearances": AddressInfo.TxAppearances, "balanceSat": AddressInfo.BalanceSat, "balance": AddressInfo.Balance, "transactions": AddressInfo.TransactionsID}}
+	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
+	if err != nil {
+		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	}
+	return err //TODO What if it's still unconfirmed. Unconfirmed Balance & Unconfirmed TotalSent & Unconfirmed tx Appearances
+}
 
 // Update addressInfo by searching with the address string
 func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressInfo, receivedSat int64, confirmed bool, txid string) error {
@@ -225,17 +259,17 @@ func (dao *MongoDAO) UpdateAddressInfoReceived(AddressInfo *insightjson.AddressI
 
 	AddressInfo.TransactionsID = append(AddressInfo.TransactionsID, txid) //TODO change order
 
-	if !confirmed {
-		AddressInfo.UnconfirmedTxAppearances += 1
-		AddressInfo.UnconfirmedBalance += btcutil.Amount(receivedSat).ToBTC()
-		AddressInfo.UnconfirmedBalanceSat += receivedSat
-		change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
-		err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
-		if err != nil {
-			log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
-		}
-		return err
-	}
+	//if !confirmed { // TODO
+	//	AddressInfo.UnconfirmedTxAppearances += 1
+	//	AddressInfo.UnconfirmedBalance += btcutil.Amount(receivedSat).ToBTC()
+	//	AddressInfo.UnconfirmedBalanceSat += receivedSat
+	//	change := bson.M{"$set": bson.M{"unconfirmedTxAppearances": AddressInfo.UnconfirmedTxAppearances, "unconfirmedBalance": AddressInfo.UnconfirmedBalance, "unconfirmedBalanceSat": AddressInfo.UnconfirmedBalanceSat, "transactions": AddressInfo.TransactionsID}}
+	//	err := sessionCopy.DB(db.Name).C(ADDRESSINFO).Update(colQuerier, change)
+	//	if err != nil {
+	//		log.Printf("Failed to update AddressInfo for adress %s: %s", AddressInfo.Address, err)
+	//	}
+	//	return err
+	//}
 
 	AddressInfo.TxAppearances += 1
 	AddressInfo.TotalReceivedSat += receivedSat
